@@ -1,0 +1,3 @@
+channel,channel_parameter,decoder,biased,p_one,failures,blocks,failure_rate,rejected,offset_failures,offset_failure_rate,paired_disagreements
+BSC,0.14,SC,False,0.5,0,160,0.0,0,0,0.0,0
+BSC,0.15,SC,False,0.5,1,160,0.00625,1,1,0.00625,0

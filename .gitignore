@@ -1,0 +1,168 @@
+
+# ============================================================
+# Python / TensorFlow / Polar Codes / SRAM-PUF Project
+# ============================================================
+
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+conda-env/
+.python-version
+
+# Python packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+pip-wheel-metadata/
+
+# Testing and coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Jupyter notebooks
+.ipynb_checkpoints/
+
+# ============================================================
+# TensorFlow / Machine Learning
+# ============================================================
+
+# TensorFlow checkpoints
+checkpoints/
+*.ckpt
+*.ckpt.*
+checkpoint
+events.out.tfevents.*
+
+# Saved models and training logs
+saved_models/
+tensorboard/
+logs/
+wandb/
+mlruns/
+
+# GPU profiling
+*.nsys-rep
+*.qdrep
+*.sqlite
+
+# ============================================================
+# Simulation Outputs
+# ============================================================
+
+# Generated numerical results
+results/
+figs/
+plots/
+outputs/
+temp/
+tmp/
+
+# Large numerical arrays
+*.npy
+*.npz
+*.mat
+*.h5
+*.hdf5
+*.hdf
+
+# Generated model parameters
+*.weights.h5
+*.keras
+*.pb
+
+# ============================================================
+# SRAM-PUF Security and Private Data
+# ============================================================
+
+# Never commit actual device secrets or enrolled SRAM patterns
+secrets/
+private/
+puf_data/
+enrollment_data/
+device_keys/
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Environment variables and API keys
+.env
+.env.*
+!.env.example
+*.secret
+
+# ============================================================
+# Editors: VS Code / Cursor
+# ============================================================
+
+# Editor-specific local settings
+.vscode/
+.cursor/
+.cursorindexingignore
+
+# AI assistant local files
+.aider*
+.continue/
+
+# ============================================================
+# Operating System
+# ============================================================
+
+# Linux
+*~
+.nfs*
+
+# macOS
+.DS_Store
+.AppleDouble
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# ============================================================
+# Logs and Temporary Files
+# ============================================================
+
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*.orig
+
+# ============================================================
+# Keep Project Source Files
+# ============================================================
+
+# These are not ignored:
+# config.py
+# sim.py
+# DSCFlip.py
+# Enrolment.py
+# constructions.py
+# keycheck.py
+# utils.py
+# crc.py
+# requirements.txt
+# README.md
+# test_*.py
