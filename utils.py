@@ -1,5 +1,3 @@
-
-
 from __future__ import annotations
 
 import os
@@ -16,7 +14,6 @@ import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
 
 
-
 import numbers
 import warnings
 from pathlib import Path
@@ -30,12 +27,14 @@ from numpy.core.numerictypes import issubdtype
 # -----------------------------
 # Matplotlib style (set once)
 # -----------------------------
-plt.rcParams.update({
-    "pdf.fonttype": 42,
-    "ps.fonttype": 42,
-    "font.family": "Times New Roman",
-    "text.usetex": False,
-})
+plt.rcParams.update(
+    {
+        "pdf.fonttype": 42,
+        "ps.fonttype": 42,
+        "font.family": "serif",
+        "text.usetex": False,
+    }
+)
 
 
 # -----------------------------
@@ -50,8 +49,9 @@ def _load_5g_channel_order(path: str = "codes/polar_5G.csv") -> np.ndarray:
     return ch_order
 
 
-def generate_5g_ranking(k: int, n: int, sort: bool = True,
-                        path: str = "codes/polar_5G.csv") -> Tuple[np.ndarray, np.ndarray]:
+def generate_5g_ranking(
+    k: int, n: int, sort: bool = True, path: str = "codes/polar_5G.csv"
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     Returns frozen and information bit positions based on 5G ranking table.
 
@@ -162,7 +162,9 @@ def plot_graph(
 
     plt.grid(which="major", linestyle="-.", linewidth=0.8, color="gray", alpha=0.8)
     plt.minorticks_on()
-    plt.grid(which="minor", axis="y", linestyle=":", linewidth=0.4, color="gray", alpha=0.2)
+    plt.grid(
+        which="minor", axis="y", linestyle=":", linewidth=0.4, color="gray", alpha=0.2
+    )
     plt.tick_params(axis="both", which="major", direction="in", length=6, width=1)
     plt.tick_params(axis="both", which="minor", direction="in", length=1.5, width=0.5)
 
@@ -223,7 +225,9 @@ def plot_construction_bitmask_image(
     fig_height = pixel_size * height * num_constructions + 1.0
     fig_width = pixel_size * width + 1.0
 
-    fig, axes = plt.subplots(num_constructions, 1, figsize=(fig_width, fig_height), sharex=True)
+    fig, axes = plt.subplots(
+        num_constructions, 1, figsize=(fig_width, fig_height), sharex=True
+    )
     if num_constructions == 1:
         axes = [axes]
 
@@ -232,13 +236,17 @@ def plot_construction_bitmask_image(
     for i, (ax, (label, mask)) in enumerate(zip(axes, constructions.items())):
         mask = np.asarray(mask).astype(np.int32).reshape(-1)
         if mask.size != N:
-            raise ValueError(f"Mask for '{label}' must have length N={N}, got {mask.size}.")
+            raise ValueError(
+                f"Mask for '{label}' must have length N={N}, got {mask.size}."
+            )
 
         # Reshape to [height, width]
         grid = mask.reshape(width, height).T  # shape [height, width]
         cmap = cmaps[i % len(cmaps)]
 
-        ax.imshow(grid, cmap=cmap, aspect="equal", interpolation="nearest", origin="lower")
+        ax.imshow(
+            grid, cmap=cmap, aspect="equal", interpolation="nearest", origin="lower"
+        )
 
         # Grid lines (cheap)
         ax.set_xticks(np.arange(-0.5, width, 1), minor=True)
@@ -289,11 +297,10 @@ def plot_construction_bitmask_image(
     return out_path
 
 
-
-
 # ============================================================
 # 5G Polar ranking utilities
 # ============================================================
+
 
 def generate_5g_ranking(
     k: int,
@@ -370,6 +377,7 @@ def generate_5g_ranking(
 # Polar transform matrix
 # ============================================================
 
+
 def generate_polar_transform_mat(n_lift: int) -> np.ndarray:
     """
     Generate the polar transform matrix G_N = F^{\\otimes n_lift}, where
@@ -404,6 +412,7 @@ def generate_polar_transform_mat(n_lift: int) -> np.ndarray:
 # ============================================================
 # Reed-Muller (RM) construction helper
 # ============================================================
+
 
 def generate_rm_code(r: int, m: int):
     """
@@ -451,7 +460,9 @@ def generate_rm_code(r: int, m: int):
     info_pos = np.flatnonzero(info_vec).astype(int)
 
     if info_pos.size != k:
-        raise RuntimeError(f"Inconsistent RM dimension: got {info_pos.size}, expected {k}.")
+        raise RuntimeError(
+            f"Inconsistent RM dimension: got {info_pos.size}, expected {k}."
+        )
 
     return frozen_pos, info_pos, n, k, d_min
 
@@ -459,6 +470,7 @@ def generate_rm_code(r: int, m: int):
 # ============================================================
 # Dense polar matrices (naive)
 # ============================================================
+
 
 def generate_dense_polar(frozen_pos: np.ndarray, n: int, verbose: bool = True):
     """
@@ -517,6 +529,7 @@ def generate_dense_polar(frozen_pos: np.ndarray, n: int, verbose: bool = True):
 # Bit/integer conversion helpers
 # ============================================================
 
+
 def bin2int(arr: List[int] | np.ndarray) -> Optional[int]:
     """Convert MSB->LSB binary array/list to integer. Returns None if empty."""
     if len(arr) == 0:
@@ -560,6 +573,7 @@ def int2bin_tf(ints: tf.Tensor, len_: int) -> tf.Tensor:
 # ============================================================
 # Alist and matrix conversions (kept mostly as-is)
 # ============================================================
+
 
 def alist2mat(alist, verbose=True):
     # (Your original body unchanged except for style improvements would be long)
@@ -624,6 +638,7 @@ def load_alist(path: str) -> list:
 # Fast modulo-2 for TF
 # ============================================================
 
+
 def int_mod_2(x: tf.Tensor) -> tf.Tensor:
     """
     Efficient modulo-2 for integer tensors using bitwise AND.
@@ -643,6 +658,7 @@ def int_mod_2(x: tf.Tensor) -> tf.Tensor:
 # ============================================================
 # Bhattacharyya parameter recursion (memoized)
 # ============================================================
+
 
 @lru_cache(maxsize=None)
 def bhattacharyya_parameter(i: int, N: int, alpha: float) -> float:
@@ -689,10 +705,12 @@ def bhattacharyya_parameter(i: int, N: int, alpha: float) -> float:
     z = bhattacharyya_parameter((i + 1) // 2, half, alpha)
     return 2 * z - z * z
 
+
 # ============================================================
 # SRAM-PUF / communications channel utilities
 # Added without removing the original utility functions.
 # ============================================================
+
 
 def polar_transform_bits(bits: np.ndarray) -> np.ndarray:
     """Compute x = u F^{tensor log2(N)} over GF(2), batch last-axis N.
@@ -702,12 +720,12 @@ def polar_transform_bits(bits: np.ndarray) -> np.ndarray:
     """
     u = np.asarray(bits)
     if u.ndim not in (1, 2):
-        raise ValueError('Expected shape [N] or [batch,N].')
+        raise ValueError("Expected shape [N] or [batch,N].")
     N = u.shape[-1]
     if N < 2 or N & (N - 1):
-        raise ValueError('Polar transform length must be a power of two >= 2.')
+        raise ValueError("Polar transform length must be a power of two >= 2.")
     if not np.all((u == 0) | (u == 1)):
-        raise ValueError('Input must consist of binary bits.')
+        raise ValueError("Input must consist of binary bits.")
     x = u.astype(np.uint8, copy=True)
     half = 1
     while half < N:
@@ -719,23 +737,33 @@ def polar_transform_bits(bits: np.ndarray) -> np.ndarray:
 
 def snr_db_to_sigma(snr_db: float) -> float:
     """BPSK symbol energy 1: sigma^2 = 1/(2*10^(Es/N0/10))."""
-    return float(np.sqrt(1.0 / (2.0 * 10.0**(snr_db / 10.0))))
+    return float(np.sqrt(1.0 / (2.0 * 10.0 ** (snr_db / 10.0))))
 
 
-def sample_puf_bits(n: int, batch_size: int = 1, prob_one: float = 0.5,
-                    rng: Optional[np.random.Generator] = None) -> np.ndarray:
+def sample_puf_bits(
+    n: int,
+    batch_size: int = 1,
+    prob_one: float = 0.5,
+    rng: Optional[np.random.Generator] = None,
+) -> np.ndarray:
     """Independent SRAM cell model: X_i~Bernoulli(prob_one)."""
     if n <= 0 or batch_size <= 0 or not (0.0 < prob_one < 1.0):
-        raise ValueError('n, batch_size must be positive and 0 < prob_one < 1.')
+        raise ValueError("n, batch_size must be positive and 0 < prob_one < 1.")
     rng = np.random.default_rng() if rng is None else rng
     return (rng.random((batch_size, n)) < prob_one).astype(np.uint8)
 
 
-def sample_channel(bits: np.ndarray, channel: str = 'BSC', *,
-                   p: float = 0.15, snr_db: float = 0.0,
-                   erasure_probability: float = 0.15,
-                   prob_one: float = 0.5, llr_clip: float = 80.0,
-                   rng: Optional[np.random.Generator] = None):
+def sample_channel(
+    bits: np.ndarray,
+    channel: str = "BSC",
+    *,
+    p: float = 0.15,
+    snr_db: float = 0.0,
+    erasure_probability: float = 0.15,
+    prob_one: float = 0.5,
+    llr_clip: float = 80.0,
+    rng: Optional[np.random.Generator] = None,
+):
     """Generate observations and posterior LLRs log P(X=0|Y)/P(X=1|Y).
 
     Input is the *actual enrollment PUF vector* X, not a zero codeword.
@@ -751,33 +779,48 @@ def sample_channel(bits: np.ndarray, channel: str = 'BSC', *,
     rng = np.random.default_rng() if rng is None else rng
     channel = channel.upper()
     x = np.asarray(bits)
+
     if x.ndim not in (1, 2) or not np.all((x == 0) | (x == 1)):
-        raise ValueError('bits must be binary array [N] or [B,N].')
+        raise ValueError("bits must be binary array [N] or [B,N].")
+
     if not 0.0 < prob_one < 1.0:
-        raise ValueError('prob_one must be in (0,1).')
+        raise ValueError("prob_one must be in (0,1).")
+
     prior = np.log1p(-prob_one) - np.log(prob_one)
-    if channel == 'BSC':
+    if channel == "BSC":
         if not (0 <= p < 0.5):
-            raise ValueError('BSC crossover p must satisfy 0 <= p < 0.5.')
+            raise ValueError("BSC crossover p must satisfy 0 <= p < 0.5.")
+
+        # Generate BSC noise
         noise = (rng.random(x.shape) < p).astype(np.uint8)
+
+        # Received binary symbols
         y = np.bitwise_xor(x.astype(np.uint8), noise)
+
+        # BSC LLR magnitude
         magnitude = llr_clip if p == 0 else np.log((1.0 - p) / p)
-        llr = (1.0 - 2.0 * y.astype(np.float64)) * magnitude + prior
-    elif channel == 'AWGN':
+
+        llr = (2.0 * y.astype(np.float64) - 1.0) * magnitude
+
+        llr = prior - llr
+
+    elif channel == "AWGN":
         sigma = snr_db_to_sigma(snr_db)
         y = 1.0 - 2.0 * x.astype(np.float64) + rng.normal(0.0, sigma, x.shape)
         llr = (2.0 / sigma**2) * y + prior
-    elif channel == 'BEC':
+
+    elif channel == "BEC":
         eps = erasure_probability
         if not 0 <= eps <= 1:
-            raise ValueError('BEC erasure_probability must be in [0,1].')
+            raise ValueError("BEC erasure_probability must be in [0,1].")
         erased = rng.random(x.shape) < eps
         y = x.astype(np.int8).copy()
         y[erased] = -1
         llr = (1.0 - 2.0 * x.astype(np.float64)) * llr_clip + prior
         llr[erased] = prior
+
     else:
-        raise ValueError('channel must be one of BSC, AWGN, BEC.')
+        raise ValueError("channel must be one of BSC, AWGN, BEC.")
     return y, np.clip(llr, -llr_clip, llr_clip).astype(np.float32)
 
 

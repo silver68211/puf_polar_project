@@ -1,4 +1,3 @@
-
 """
 SRAM-PUF KEY GENERATION USING POLAR CODES
 """
@@ -23,6 +22,7 @@ from utils import sample_channel, generate_5g_ranking
 # 1. POLAR CODE CONSTRUCTION
 # ==============================================================
 
+
 def construct_polar_code(cfg, N):
 
     # Construct the polar code for the design BSC.
@@ -37,9 +37,8 @@ def construct_polar_code(cfg, N):
     #     channel="BSC",
     #     design_p=cfg.design_p,
     # )
-    
+
     frozen, info = generate_5g_ranking(cfg.key_length, N)
-    
 
     return frozen, info
 
@@ -47,6 +46,7 @@ def construct_polar_code(cfg, N):
 # ==============================================================
 # 2. KEY VERIFICATION
 # ==============================================================
+
 
 def build_checker(cfg):
 
@@ -65,6 +65,7 @@ def build_checker(cfg):
 # 3. ENROLL ONE SRAM-PUF DEVICE
 # ==============================================================
 
+
 def enroll_device(cfg, N, frozen, checker, rng):
 
     q = cfg.puf_one_probability
@@ -82,7 +83,6 @@ def enroll_device(cfg, N, frozen, checker, rng):
     # The original SRAM values X never change afterward.
 
     if cfg.all_zero_device:
-
         X = np.zeros((1, N), dtype=np.uint8)
 
         device = enrollment.enroll(
@@ -91,7 +91,6 @@ def enroll_device(cfg, N, frozen, checker, rng):
         )
 
     else:
-
         device = enrollment.enroll(
             batch_size=1,
             rng=rng,
@@ -104,17 +103,16 @@ def enroll_device(cfg, N, frozen, checker, rng):
 # 4. BUILD THE POLAR DECODER
 # ==============================================================
 
+
 def build_decoder(cfg, N, frozen, checker):
 
     if cfg.decoder.upper() == "SC":
-
         return PolarSCDecoder(
             frozen_pos=frozen,
             n=N,
         )
 
     if cfg.decoder.upper() == "DSCF":
-
         return PolarDSCFlipDecoder(
             frozen_pos=frozen,
             n=N,
@@ -131,6 +129,7 @@ def build_decoder(cfg, N, frozen, checker):
 # ==============================================================
 # 5. DECODING ONE BATCH
 # ==============================================================
+
 
 def decode_batch(
     decoder,
@@ -164,7 +163,6 @@ def decode_batch(
     # SC decoding
 
     if decoder_name == "SC":
-
         decoded_full, _ = decoder(
             llr_tensor,
             frozen_values=frozen_batch,
@@ -173,7 +171,6 @@ def decode_batch(
     # DSCF decoding with hash/CRC verification
 
     else:
-
         tags = np.broadcast_to(
             expected_tag,
             (batch_size, expected_tag.shape[1]),
@@ -198,11 +195,12 @@ def decode_batch(
 # 6. MAIN MONTE CARLO SIMULATION
 # ==============================================================
 
+
 def simulate(cfg: SimConfig):
 
     cfg.validate()
 
-    N = 2 ** cfg.n_log2
+    N = 2**cfg.n_log2
     K = cfg.key_length
     q = cfg.puf_one_probability
 
@@ -269,12 +267,9 @@ def simulate(cfg: SimConfig):
     offset_sign = None
 
     if cfg.compare_code_offset:
-
         _, W_offset = enrollment.code_offset(device)
 
-        offset_sign = (
-            1.0 - 2.0 * W_offset.astype(np.float32)
-        )
+        offset_sign = 1.0 - 2.0 * W_offset.astype(np.float32)
 
     # ----------------------------------------------------------
     # STEP 6: Prepare output CSV
@@ -311,7 +306,7 @@ def simulate(cfg: SimConfig):
     print("=" * 70)
     print(f"Block length       : {N}")
     print(f"Secret key length  : {K}")
-    print(f"Helper data length : {N-K}")
+    print(f"Helper data length : {N - K}")
     print(f"Device type        : {source}")
     print(f"P(X=1)             : {q}")
     print(f"Channel            : BSC")
@@ -324,10 +319,7 @@ def simulate(cfg: SimConfig):
     print("=" * 70)
 
     if q != 0.5:
-        print(
-            "Note: biased PUF baseline; "
-            "secrecy is not guaranteed."
-        )
+        print("Note: biased PUF baseline; secrecy is not guaranteed.")
 
     # ----------------------------------------------------------
     # STEP 8: Sweep the BSC crossover probabilities
@@ -335,16 +327,11 @@ def simulate(cfg: SimConfig):
 
     results = []
 
-
-
-    
-
     with output_csv.open(
         "w",
         newline="",
         encoding="utf-8",
     ) as file:
-
         writer = csv.writer(file)
 
         # CSV contains exactly TWO columns.
@@ -360,11 +347,7 @@ def simulate(cfg: SimConfig):
             # Repeated noisy reads of the SAME SRAM device
             # --------------------------------------------------
 
-            while (
-                total_blocks < cfg.max_blocks
-                and total_errors < cfg.min_block_errors
-            ):
-
+            while total_blocks < cfg.max_blocks and total_errors < cfg.min_block_errors:
                 batch = min(
                     cfg.batch_size,
                     cfg.max_blocks - total_blocks,
@@ -429,19 +412,14 @@ def simulate(cfg: SimConfig):
                     axis=1,
                 )
 
-                total_errors += int(
-                    np.count_nonzero(block_errors)
-                )
+                total_errors += int(np.count_nonzero(block_errors))
 
                 # ------------------------------------------------
                 # OPTIONAL CODE-OFFSET COMPARISON
                 # ------------------------------------------------
 
                 if cfg.compare_code_offset:
-
-                    llr_offset = (
-                        llr * offset_sign
-                    ).astype(np.float32)
+                    llr_offset = (llr * offset_sign).astype(np.float32)
 
                     zero_frozen = np.zeros_like(W)
 
@@ -455,21 +433,17 @@ def simulate(cfg: SimConfig):
                     )
 
                     offset_errors += int(
-                        np.count_nonzero(
-                            np.any(S_offset != S, axis=1)
-                        )
+                        np.count_nonzero(np.any(S_offset != S, axis=1))
                     )
 
                 total_blocks += batch
                 BLER = total_errors / total_blocks
                 print(
-                        f"p: {p:1.3f} |"
-                        f"BLER: {BLER:1.6e} |"
-                        f"BLE: {total_errors:4d} |"
-                        f"BLKs: {total_blocks:12d}"
-                    )
-
-
+                    f"p: {p:1.3f} |"
+                    f"BLER: {BLER:1.6e} |"
+                    f"BLE: {total_errors:4d} |"
+                    f"BLKs: {total_blocks:12d}"
+                )
 
             # --------------------------------------------------
             # BLER ESTIMATION
@@ -481,20 +455,19 @@ def simulate(cfg: SimConfig):
 
             # Save [p, BLER] only.
 
-            writer.writerow([
-                f"{p:.6f}",
-                f"{BLER:.10e}",
-            ])
+            writer.writerow(
+                [
+                    f"{p:.6f}",
+                    f"{BLER:.10e}",
+                ]
+            )
 
             file.flush()
 
             if cfg.compare_code_offset:
-                print(
-                    "  Code-offset BLER: "
-                    f"{offset_errors/total_blocks:.6e}"
-                )
+                print(f"  Code-offset BLER: {offset_errors / total_blocks:.6e}")
 
-    print("-" * 52)
+    print("=" * 70)
     print(f"\nResults saved to: {output_csv}")
 
     return results
@@ -505,7 +478,6 @@ def simulate(cfg: SimConfig):
 # ==============================================================
 
 if __name__ == "__main__":
-
     # All user-editable parameters are in config.py.
 
     config = SimConfig()

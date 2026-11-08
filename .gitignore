@@ -1,168 +1,149 @@
 
 # ============================================================
-# Python / TensorFlow / Polar Codes / SRAM-PUF Project
+# SRAM-PUF Polar Codes Research Project
+# Python / C++ / AFF3CT
 # ============================================================
 
-# Python bytecode and cache
+
+# ------------------------------------------------------------
+# 1. Python cache and compiled files
+# ------------------------------------------------------------
+
 __pycache__/
 *.py[cod]
 *$py.class
-*.pyo
 
-# Virtual environments
+*.so
+*.pyd
+*.dll
+*.dylib
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+
+# ------------------------------------------------------------
+# 2. Python environments and packaging
+# ------------------------------------------------------------
+
 .venv/
 venv/
 env/
 ENV/
-conda-env/
-.python-version
+.conda/
 
-# Python packaging
 build/
 dist/
 *.egg-info/
 .eggs/
-*.egg
+
 pip-wheel-metadata/
 
-# Testing and coverage
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.hypothesis/
-.tox/
-.nox/
-.coverage
-.coverage.*
-htmlcov/
-coverage.xml
 
-# Jupyter notebooks
-.ipynb_checkpoints/
+# ------------------------------------------------------------
+# 3. C++ / CMake generated files
+# ------------------------------------------------------------
 
-# ============================================================
-# TensorFlow / Machine Learning
-# ============================================================
+cpp/build/
+cmake-build-*/
 
-# TensorFlow checkpoints
-checkpoints/
-*.ckpt
-*.ckpt.*
-checkpoint
-events.out.tfevents.*
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+compile_commands.json
+CMakeUserPresets.json
 
-# Saved models and training logs
-saved_models/
-tensorboard/
-logs/
-wandb/
-mlruns/
+*.o
+*.obj
+*.a
+*.lib
+*.la
+*.lo
 
-# GPU profiling
-*.nsys-rep
-*.qdrep
-*.sqlite
+*.d
+*.gcda
+*.gcno
+*.gcov
 
-# ============================================================
-# Simulation Outputs
-# ============================================================
 
-# Generated numerical results
+# ------------------------------------------------------------
+# 4. Simulation results and generated figures
+# ------------------------------------------------------------
+
 results/
-figs/
-plots/
 outputs/
-temp/
-tmp/
+tests/
+simulation_outputs/
 
-# Large numerical arrays
-*.npy
-*.npz
-*.mat
-*.h5
-*.hdf5
-*.hdf
-
-# Generated model parameters
-*.weights.h5
-*.keras
-*.pb
-
-# ============================================================
-# SRAM-PUF Security and Private Data
-# ============================================================
-
-# Never commit actual device secrets or enrolled SRAM patterns
-secrets/
-private/
-puf_data/
-enrollment_data/
-device_keys/
-*.key
-*.pem
-*.p12
-*.pfx
-
-# Environment variables and API keys
-.env
-.env.*
-!.env.example
-*.secret
-
-# ============================================================
-# Editors: VS Code / Cursor
-# ============================================================
-
-# Editor-specific local settings
-.vscode/
-.cursor/
-.cursorindexingignore
-
-# AI assistant local files
-.aider*
-.continue/
-
-# ============================================================
-# Operating System
-# ============================================================
-
-# Linux
-*~
-.nfs*
-
-# macOS
-.DS_Store
-.AppleDouble
-
-# Windows
-Thumbs.db
-Desktop.ini
-
-# ============================================================
-# Logs and Temporary Files
-# ============================================================
-
+# Simulation logs
 *.log
+slurm-*.out
+slurm-*.err
+
+
+# ------------------------------------------------------------
+# 5. Temporary files
+# ------------------------------------------------------------
+
 *.tmp
 *.temp
 *.bak
 *.swp
 *.swo
-*.orig
+*~
+.DS_Store
+Thumbs.db
+
+
+# ------------------------------------------------------------
+# 6. Local editor and IDE settings
+# ------------------------------------------------------------
+
+.vscode/
+.idea/
+
+
+# ------------------------------------------------------------
+# 7. Local secrets and machine-specific configuration
+# ------------------------------------------------------------
+
+.env
+.env.*
+!.env.example
+
+secrets/
+credentials/
+
+
+# ------------------------------------------------------------
+# 8. Jupyter temporary files
+# ------------------------------------------------------------
+
+.ipynb_checkpoints/
+
 
 # ============================================================
-# Keep Project Source Files
+# IMPORTANT: Keep all research source code and test scripts.
+#
+# Do NOT ignore:
+#   config.py
+#   sim.py
+#   sim_aff3ct.py
+#   DSCFlip.py
+#   Enrolment.py
+#   constructions.py
+#   keycheck.py
+#   keycheck.py
+#   crc.py
+#   utils.py
+#   cpp/*.cpp
+#   cpp/*.hpp
+#   cpp/CMakeLists.txt
+#   test_*.py
+#   requirements.txt
+#   README.md
 # ============================================================
-
-# These are not ignored:
-# config.py
-# sim.py
-# DSCFlip.py
-# Enrolment.py
-# constructions.py
-# keycheck.py
-# utils.py
-# crc.py
-# requirements.txt
-# README.md
-# test_*.py

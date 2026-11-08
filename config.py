@@ -1,18 +1,21 @@
-
 from dataclasses import dataclass
 import numpy as np
+import os
 
 
 @dataclass(frozen=True)
 class SimConfig:
-
     # ==========================================================
     # 1. POLAR CODE PARAMETERS
     # ==========================================================
 
-    n_log2: int = 10               # N = 2^10 = 1024
-    key_length: int = 128          # Secret key length K
+    n_log2: int = 10  # N = 2^8 = 256
+    key_length: int = 128  # Secret key length K
+    construction: str = "5G"  # "5G" or "BSC"
 
+    # Number of parallel C++ simulation workers.
+    # Each worker has its own AFF3CT SC decoder.
+    num_threads: int = 3
 
     # ==========================================================
     # 2. SRAM-PUF PARAMETERS
@@ -33,7 +36,7 @@ class SimConfig:
     # Only use with puf_one_probability = 0.5.
 
     all_zero_device: bool = False
-
+    scramble_codeword: bool = True
 
     # ==========================================================
     # 3. BSC CHANNEL PARAMETERS
@@ -47,9 +50,17 @@ class SimConfig:
 
     # Crossover probabilities used to measure BLER.
 
-    p_values: tuple = tuple(np.arange(0.14,0.32, 0.02))
-
-
+    p_values: tuple = (
+        
+        0.15,
+        0.18,
+        0.20,
+        0.22,
+        0.24,
+        0.26,
+        0.28,
+        0.30,
+    )
 
     # ==========================================================
     # 4. DECODER PARAMETERS
@@ -59,14 +70,20 @@ class SimConfig:
     # "SC"   -> Successive Cancellation
     # "DSCF" -> Dynamic Successive Cancellation Flip
 
-    decoder: str = "SC" 
+    decoder: tuple[str, ...] = ("SC", "DSCF", "SCL")  # "SC", "DSCF", "SCL",  "all"
+    
+    seed: int = int.from_bytes(
+        os.urandom(8), "little"
+    )   # int.from_bytes(os.urandom(8), "little")
 
     # Maximum number of DSCF flip attempts.
     num_trials: int = 10
-    
+
     # DSCF metric parameter.
     alpha: float = 0.3367
 
+    # SCL parameters
+    list_sizes: tuple[int, ...] = (2, 4, 8, 16)
 
     # ==========================================================
     # 5. KEY VERIFICATION
@@ -83,21 +100,19 @@ class SimConfig:
 
     crc_degree: str = "CRC16"
 
-
     # ==========================================================
     # 6. MONTE CARLO SIMULATION PARAMETERS
     # ==========================================================
 
     # Number of independent noisy SRAM readings per batch.
-    batch_size: int = 10000
+    batch_size: int = 1000000
 
     # Stop simulating a crossover probability after this
     # many incorrectly reconstructed keys.
-    min_block_errors: int = 100
+    min_block_errors: int = 200
 
     # Maximum number of noisy readings for each p value.
     max_blocks: int = 1000_000_000
-
 
     # ==========================================================
     # 7. OPTIONAL COMPARISON
@@ -108,14 +123,12 @@ class SimConfig:
 
     compare_code_offset: bool = False
 
-
     # ==========================================================
     # 8. OUTPUT
     # ==========================================================
 
     # Directory for CSV results.
     out_dir: str = "results"
-
 
     # ==========================================================
     # 9. CONFIGURATION VALIDATION
@@ -126,20 +139,16 @@ class SimConfig:
         if self.n_log2 < 1:
             raise ValueError("n_log2 must be positive.")
 
-        N = 2 ** self.n_log2
+        N = 2**self.n_log2
 
         if not 0 < self.key_length < N:
             raise ValueError("Require 0 < key_length < N.")
 
         if not 0 < self.puf_one_probability < 1:
-            raise ValueError(
-                "puf_one_probability must be in (0, 1)."
-            )
+            raise ValueError("puf_one_probability must be in (0, 1).")
 
         if self.all_zero_device and self.puf_one_probability != 0.5:
-            raise ValueError(
-                "All-zero mode requires puf_one_probability = 0.5."
-            )
+            raise ValueError("All-zero mode requires puf_one_probability = 0.5.")
 
         if not 0 < self.design_p < 0.5:
             raise ValueError("design_p must be in (0, 0.5).")
@@ -149,9 +158,7 @@ class SimConfig:
 
         for p in self.p_values:
             if not 0 <= p < 0.5:
-                raise ValueError(
-                    "Every BSC crossover probability must be in [0, 0.5)."
-                )
+                raise ValueError("Every BSC crossover probability must be in [0, 0.5).")
 
         if self.decoder.upper() not in ("SC", "DSCF"):
             raise ValueError("decoder must be SC or DSCF.")
@@ -160,9 +167,7 @@ class SimConfig:
             raise ValueError("Invalid checker.")
 
         if self.decoder.upper() == "DSCF" and self.checker.lower() == "none":
-            raise ValueError(
-                "DSCF requires hash or CRC verification."
-            )
+            raise ValueError("DSCF requires hash or CRC verification.")
 
         if self.decoder.upper() == "DSCF" and self.num_trials < 0:
             raise ValueError("num_trials cannot be negative.")
@@ -180,3 +185,6 @@ class SimConfig:
             raise ValueError(
                 "Code-offset comparison is enabled only for unbiased PUFs."
             )
+
+        if self.num_threads < 1:
+            raise ValueError("num_threads must be >= 1.")

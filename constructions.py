@@ -27,7 +27,7 @@ class GA:
             raise ValueError("n_log2 must be >= 1.")
 
         self.n_log2 = int(n_log2)
-        self.N = 2 ** self.n_log2
+        self.N = 2**self.n_log2
         self.K = int(round(rate * self.N))
         self.rate = float(rate)
 
@@ -68,7 +68,9 @@ class GA:
         return np.clip(y, 1e-15, 1.0)
 
     @classmethod
-    def phi_inv(cls, y: np.ndarray, lo: float = 0.0, hi: float = 10_000.0, tol: float = 1e-2) -> np.ndarray:
+    def phi_inv(
+        cls, y: np.ndarray, lo: float = 0.0, hi: float = 10_000.0, tol: float = 1e-2
+    ) -> np.ndarray:
         """
         Vectorized inverse of phi_new via bisection.
 
@@ -107,7 +109,7 @@ class GA:
         cur = m.copy()
         for stage in range(1, self.n_log2 + 1):
             half = 2 ** (stage - 1)
-            size = 2 ** stage
+            size = 2**stage
 
             # We only need previous stage values for indices 0..half-1
             prev = cur[:half]
@@ -139,7 +141,7 @@ def bin_rep(n: int) -> np.ndarray:
     """
     if n < 1:
         raise ValueError("n must be >= 1.")
-    x = np.arange(2 ** n, dtype=np.uint32)[:, None]
+    x = np.arange(2**n, dtype=np.uint32)[:, None]
     bits = (x >> np.arange(n, dtype=np.uint32)) & 1
     return bits.astype(np.uint8)
 
@@ -156,7 +158,9 @@ def RM_Design_Rule(N: int, K: int) -> np.ndarray:
     return np.argsort(wt)[::-1][:K]
 
 
-def RM_Polar_Design_Rule(N: int, K: int, crc: int = 0, ebno_db: float = 3.0) -> Tuple[np.ndarray, np.ndarray]:
+def RM_Polar_Design_Rule(
+    N: int, K: int, crc: int = 0, ebno_db: float = 3.0
+) -> Tuple[np.ndarray, np.ndarray]:
     """
     RM-Polar selection rule (your variant): filter by RM order then pick best by Bhattacharyya-like metric.
 
@@ -226,48 +230,51 @@ if __name__ == "__main__":
     print("info_pos:\n", info_pos)
     print("frozen:\n", frozen)
 
-def bhattacharyya_design(n: int, k: int, *, channel: str = 'BSC',
-                          design_p: float = 0.15,
-                          design_snr_db: float = 0.0,
-                          design_erasure: float = 0.15):
-    
+
+def bhattacharyya_design(
+    n: int,
+    k: int,
+    *,
+    channel: str = "BSC",
+    design_p: float = 0.15,
+    design_snr_db: float = 0.0,
+    design_erasure: float = 0.15,
+):
     """Polar index construction via BEC recursion / BMS Bhattacharyya upper bound.
 
     BEC: exact. BSC/AWGN: Z^- <= 2Z-Z^2 and Z^+=Z^2 (conservative approximation).
     """
 
-    if n < 2 or (n & (n-1)) != 0 or not 0 < k < n:
-        raise ValueError('n must be a power of two and 0 < k < n.')
+    if n < 2 or (n & (n - 1)) != 0 or not 0 < k < n:
+        raise ValueError("n must be a power of two and 0 < k < n.")
     channel = channel.upper()
 
-    if channel == 'BSC':
+    if channel == "BSC":
         if not 0 <= design_p <= 0.5:
-            raise ValueError('design_p out of range.')
+            raise ValueError("design_p out of range.")
         z0 = 2.0 * np.sqrt(design_p * (1.0 - design_p))
 
-
-    elif channel == 'BEC':
+    elif channel == "BEC":
         if not 0 <= design_erasure <= 1:
-            raise ValueError('design_erasure out of range.')
+            raise ValueError("design_erasure out of range.")
         z0 = float(design_erasure)
-    
-    elif channel == 'AWGN':
-        # For equiprobable BPSK with symbol energy 1, Z = exp(-Es/N0).
-        z0 = np.exp(-10.0**(design_snr_db / 10.0))
-    
-    else:
-        raise ValueError('channel must be BSC, AWGN, or BEC.')
 
-    
+    elif channel == "AWGN":
+        # For equiprobable BPSK with symbol energy 1, Z = exp(-Es/N0).
+        z0 = np.exp(-(10.0 ** (design_snr_db / 10.0)))
+
+    else:
+        raise ValueError("channel must be BSC, AWGN, or BEC.")
+
     z = np.asarray([z0], dtype=np.float64)
     while z.size < n:
-        z_next = np.empty(2*z.size, dtype=np.float64)
-        z_next[0::2] = np.minimum(1.0, 2.0*z-z*z)
-        z_next[1::2] = z*z
+        z_next = np.empty(2 * z.size, dtype=np.float64)
+        z_next[0::2] = np.minimum(1.0, 2.0 * z - z * z)
+        z_next[1::2] = z * z
         z = z_next
-    
-    order = np.argsort(z, kind='stable')
+
+    order = np.argsort(z, kind="stable")
     info = np.sort(order[:k].astype(np.int32))
     frozen = np.sort(order[k:].astype(np.int32))
-    
+
     return frozen, info, z
