@@ -1,7 +1,7 @@
 
 # Polar Codes for SRAM-PUF Key Regeneration
 
-Monte Carlo simulation of SRAM-PUF key regeneration using **polar codes** and **SC, order-one DSCF, and SCL decoding**. The high-performance simulator is built on [AFF3CT](https://github.com/aff3ct/aff3ct) v4.7.1; a separate TensorFlow implementation provides SC/DSCF reference decoders.
+Monte Carlo simulation of SRAM-PUF key regeneration using **polar codes** and **SC, order-one DSCF, and SCL decoding**. The high-performance simulator is built on [AFF3CT](https://github.com/aff3ct/aff3ct) v4.7.1;
 
 The project compares **syndrome (transform)** and **code-offset** enrollment over the binary symmetric channel (BSC), including a biased-source baseline. It is inspired by [1] and [2], but does **not** reproduce the secrecy-aware construction of [2].
 
