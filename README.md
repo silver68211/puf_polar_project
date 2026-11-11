@@ -1,76 +1,177 @@
-# Polar codes for SRAM-PUF key regeneration
 
-Based on Chen et al., GLOBECOM 2017, *A Robust SRAM-PUF Key Generation Scheme Based on Polar Codes*. Also includes a **biased-source baseline**, motivated by Chen & Willems, IEEE IoT Journal (2019). The full secrecy-aware biased-PUF polar construction from 2019 is **not** claimed to be reproduced.
+# Polar Codes for SRAM-PUF Key Regeneration
 
-## Files
+Monte Carlo simulation of SRAM-PUF key regeneration using **polar codes** and **SC, order-one DSCF, and SCL decoding**. The high-performance simulator is built on [AFF3CT](https://github.com/aff3ct/aff3ct) v4.7.1; a separate TensorFlow implementation provides SC/DSCF reference decoders.
 
-- `utils.py`: all original utilities plus BSC/AWGN/BEC and a fast GF(2) polar transform.
-- `Enrolment.py`: new SRAM enrollment, biased/unbiased generation, key/helper split and paired code-offset scheme.
-- `keycheck.py`: SHA-256 / SHA3-256 / SHA-512 / BLAKE2s hash or CRC as a **separately stored key-confirmation tag**.
-- `DSCFlip.py`: original SC recursive algorithm modified to accept per-word nonzero helper/frozen bits; original order-1 DSCF metric retained in log domain, candidate handling and batch ordering fixed; hash/CRC checking enabled.
-- `constructions.py`: original constructions plus Bhattacharyya reliability ordering; exact for BEC, BSC/AWGN conservative upper-bound approximations.
-- `crc.py`: retained original CRC module for compatibility (new external CRC tag is in `keycheck.py`).
-- `sim.py`: syndrome simulation with decoder choice, channel choice, biased/unbiased source, optional paired code-offset comparison, CSV/PNG outputs.
-- `test_puf.py`: unit tests and noiseless decoder regression tests.
+The project compares **syndrome (transform)** and **code-offset** enrollment over the binary symmetric channel (BSC), including a biased-source baseline. It is inspired by [1] and [2], but does **not** reproduce the secrecy-aware construction of [2].
 
-## Requirements
+## 1. Requirements
 
-Python compatible with your TensorFlow installation (typically Python 3.10/3.11/3.12 depending on TF version), NumPy, TensorFlow, SciPy, Matplotlib, Pandas, pytest. Installation in an isolated environment is recommended.
+- Linux, Git, a C++17 compiler, CMake ≥ 3.18, and Conda (or Miniforge).
+- Python 3.10 and the Python dependencies below.
+- AFF3CT **v4.7.1**, compiled as a C++ library.
+- Optional: Slurm for HPC experiments.
 
-```bash
-python -m pip install numpy scipy pandas matplotlib pytest tensorflow
-python -m pytest -q test_puf.py
-```
+## 2. Install and build
 
-## Basic commands
+Run the following commands in a terminal. No administrator access is required.
+
+**Get this repository and create the Python environment:**
 
 ```bash
-# Fast functional smoke test: N=64, K=8, a few hundred samples
-python sim.py --n-log2 6 --key-length 8 --points 0.14 0.15 --batch-size 16 --max-blocks 160 --min-errors 10
+git clone git@github.com:silver68211/puf_polar_project.git
+cd puf_polar_project
 
-# The assignment's (1024,128), BSC p=0.14..0.30, SC, hash
-python sim.py
-
-# Hash-aided order-one DSCF: no extra check bits inserted into the key
-python sim.py --decoder DSCF --trials 10 --points 0.15 0.20
-
-# Alternate hash algorithm
-python sim.py --decoder DSCF --hash-name sha3_256 --hash-bits 128 --points 0.15
-
-# Nonuniform source P(X=1)=0.4: bias-aware LLR, NOT secrecy-certified
-python sim.py --biased --prob-one 0.4 --points 0.15 0.20
-
-# External CRC checker in place of hash (different from CRC-appended coding)
-python sim.py --decoder DSCF --checker crc --crc-degree CRC16 --no-compare
-
-# Alternative channels
-python sim.py --channel BEC --points 0.10 0.20 0.30
-python sim.py --channel AWGN --points 0.0 1.0 2.0
+conda create -n puf_aff3ct python=3.10 cmake pip -y
+conda activate puf_aff3ct
+export PYTHONNOUSERSITE=1
+python -m pip install --no-user numpy scipy pandas matplotlib pytest pybind11 tensorflow
+python -m pip check
 ```
 
-## What is different from communications?
+TensorFlow and Matplotlib are included because the current Python utilities may import them even when the native simulator is used.
 
-Enrollment chooses the random SRAM state `X` (or accepts provided `X`), computes `C = X G_N`, and stores `helper = C[F]` while using `key = C[info]`. During reconstruction, `Y` is a noisy observation of the **same** `X`. The SC frozen leaves must now use the **per-enrollment helper values** rather than zero. The decoder reconstructs `key_hat = C_hat[info]`. The hash/CRC is computed **from the key** and stored for verification, not added to the polar information set; the key length remains `K`.
+**Build and install AFF3CT v4.7.1:**
 
-### Biased case
+```bash
+mkdir -p "$HOME/src" "$HOME/opt"
+git clone --recursive --branch v4.7.1 \
+  https://github.com/aff3ct/aff3ct.git "$HOME/src/aff3ct"
 
-For q=P(X=1) and BSC crossover p, the correct observation posterior LLR before the polar transform is
+cmake -S "$HOME/src/aff3ct" -B "$HOME/src/aff3ct/build" \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DAFF3CT_COMPILE_EXE=OFF \
+  -DAFF3CT_COMPILE_STATIC_LIB=ON \
+  -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+  -DCMAKE_INSTALL_PREFIX="$HOME/opt/aff3ct-v4.7.1"
 
-`log(P(X=0|Y)/P(X=1|Y)) = log((1-q)/q) + (1-2Y)*log((1-p)/p)`.
+cmake --build "$HOME/src/aff3ct/build" --parallel 4
+cmake --install "$HOME/src/aff3ct/build"
+```
 
-For AWGN use `log((1-q)/q) + 2Y/sigma^2`. For BEC erased observations use `log((1-q)/q)`; visible bits use ±high LLR. With q=0.5 the prior term vanishes.
+**Build the native Python extension (from the project root):**
 
-**IMPORTANT:** the bias-aware channel LLR is a reconstruction improvement, **not** a secrecy result. In Chen & Willems (2019) a specifically designed polar construction controls both leakage and reliability; merely using the 2017 syndrome splitting with biased data can leak information about the key. A public hash also reveals a key-derived verification value, and must be included in threat-model/security analysis. Do not claim zero leakage for `(W,Hash(S))`.
+```bash
+cmake -S cpp -B cpp/build \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_PREFIX_PATH="$HOME/opt/aff3ct-v4.7.1" \
+  -Dpybind11_DIR="$(python -m pybind11 --cmakedir)" \
+  -DPython_EXECUTABLE="$(command -v python)" \
+  -DPUF_ENABLE_NATIVE_ARCH=OFF
 
-## Validation status
+cmake --build cpp/build --parallel 2
+python -c "from puf_aff3ct import PolarSC, PolarDSCF, PolarSCLPUF, BSCMonteCarloPolar; print('Native bindings: OK')"
+```
 
-- Source inspected and all files syntax-checked in the generation environment.
-- NumPy-only transform/channel/enrollment/checker tests were run independently.
-- The provided execution environment does **not** contain TensorFlow, so the TensorFlow SC/DSCF runtime tests and Fig. 4 numerical reproduction **must be run in your TensorFlow environment** before interpreting performance. No unverified failure-rate claims are made.
+`PUF_ENABLE_NATIVE_ARCH=OFF` is recommended when building on one HPC node and running on another. If AFF3CT is installed elsewhere, replace `CMAKE_PREFIX_PATH` with its installation prefix.
 
-## Reproduction caveats
+## 3. Test the installation
 
-- The Bhattacharyya BSC formula used here is a conservative upper-bound construction, **not** a reproduction of the exact 2017 paper's undocumented reliability set. The resulting SC curve may differ in detail from its Fig. 4.
-- `omega>1` was not implemented in the original DSCF and is explicitly rejected instead of silently producing order-1 results.
-- The code-offset equivalence is expected in **error-rate distribution** under uniform symmetric-channel assumptions. For BEC/LLR ties, per-trial SC decisions can differ even when the overall error rates agree. In biased mode the simplified code-offset comparison is disabled automatically.
-- Pure Monte Carlo cannot practically establish `10^-9` with usual budgets. Zero observed failures is only an upper bound, not a measured zero error probability.
+From the project root, with `puf_aff3ct` activated:
+
+```bash
+export PYTHONNOUSERSITE=1
+python -m pytest -q test_code_offset.py test_code_offset_native.py test_code_offset_noisy.py
+```
+
+These tests cover enrollment identities, noiseless native reconstruction, and bounded noisy-channel integration. They are **not** substitutes for statistically precise BLER measurements.
+
+## 4. Configure a simulation
+
+Edit `config.py` (`SimConfig`). For example, to compare both enrollment schemes on the **(1024, 128) 5G polar code**:
+
+```python
+n_log2 = 10                       # N = 1024
+key_length = 128                  # K = 128
+construction = "5G"              # Also: "BSC", "BHATTACHARYYA", "OURS"
+enrollment_schemes = ("syndrome", "code_offset")
+decoder = ("SC", "DSCF", "SCL")
+list_sizes = (2, 4, 8)            # SCL only
+num_trials = 10                   # DSCF extra attempts
+p_values = (0.15, 0.18, 0.20, 0.22, 0.24, 0.26, 0.28, 0.30)
+puf_one_probability = 0.5         # 0.4 for biased-source experiments
+checker = "hash"                  # "hash" or "crc"
+hash_bits = 128
+seed = 2026
+```
+
+These are configuration field values, **not a standalone Python script**. Set `min_block_errors`, `max_blocks`, `num_threads`, and `out_dir` in the same configuration. For quick tests, use small block limits; production simulations require enough observed errors for reliable BLER estimates. Custom `OURS` construction expects `codes/frozen_bits_N{N}_K{K}_our.csv`.
+
+## 5. Run simulations
+
+**Native AFF3CT (recommended for large experiments):**
+
+```bash
+python sim_aff3ct.py
+```
+
+The native driver runs the enrollment-scheme/decoder combinations selected in `config.py` and writes separate CSV files with `p`, `BLER`, and `normalized_complexity` to `out_dir`.
+
+**Python/TensorFlow reference (SC and DSCF only):**
+
+```bash
+# First set decoder=("SC", "DSCF") in config.py
+python sim_python.py
+```
+
+**Slurm / ECE HPC:** Ensure `jobs/aff3ct.sbatch` has a valid account, partition, QoS, project path, and Conda environment for your cluster. Create `jobs/logs` **before submission**:
+
+```bash
+mkdir -p jobs/logs
+
+# Four jobs: both schemes, SC and DSCF
+for scheme in syndrome code_offset; do
+  for case in SC DSCF; do
+    sbatch --job-name="${case}_${scheme}" \
+      --export=ALL,PUF_CASE="$case",PUF_SCHEME="$scheme" \
+      jobs/aff3ct.sbatch
+  done
+done
+
+# Six jobs: both schemes, SCL list sizes 2, 4, and 8
+for scheme in syndrome code_offset; do
+  for L in 2 4 8; do
+    sbatch --job-name="SCL_L${L}_${scheme}" \
+      --export=ALL,PUF_CASE="SCL_L${L}",PUF_SCHEME="$scheme" \
+      jobs/aff3ct.sbatch
+  done
+done
+
+squeue -u "$USER"
+```
+
+Slurm runs use unique `results/ece/job_<ID>_<DECODER>_<SCHEME>/` directories, including CSV files and `run_settings.json`; logs are under `jobs/logs/`. `PUF_CASE=SCL` **is not valid**: use `SCL_L2`, `SCL_L4`, etc.
+
+## 6. Enrollment and interpretation
+
+Let `X` be the enrolled SRAM response, `Y = X ⊕ E` a noisy read, and `G_N` the polar transform.
+
+| Scheme | Secret key | Public helper | Helper length |
+| --- | --- | --- | --- |
+| Syndrome / transform | `S = (X G_N)[info]` | `W = (X G_N)[frozen]` | `N − K` bits |
+| Code offset | Independently sampled `S`; `C = encode(S)` | `Z = X ⊕ C` | `N` bits |
+
+For syndrome enrollment, form the full offset `Z = encode(0_info, W_frozen)`. Both methods then decode `Y ⊕ Z` using a **zero-frozen** polar decoder. The hash/CRC verification tag is stored separately and is **not** counted among the `K` secret bits. The native DSCF and SCL decoders use that public tag for candidate selection; the true secret is used only to score reconstruction failures.
+
+**Limitations:** For biased PUFs (`P(X=1) ≠ 0.5`), the current prior-adjusted LLR is a baseline, not a proof of optimal helper-conditioned decoding or key secrecy. Public helper data **and** key-confirmation tags can leak information. The native CRC checker must not be assumed bit-for-bit identical to the standalone polynomial CRC layer without verification. `normalized_complexity` is an SC-equivalent model (nominally `L` for SCL), not measured execution time. Zero observed failures does not imply zero failure probability.
+
+## 7. Main files
+
+| Path | Purpose |
+| --- | --- |
+| `config.py` | Simulation configuration and validation |
+| `Enrolment.py`, `keycheck.py` | SRAM-PUF enrollment and public key verification |
+| `constructions.py`, `utils.py` | Polar construction, transforms, channels, and utilities |
+| `sim_aff3ct.py` | Native SC/DSCF/SCL Monte Carlo |
+| `sim_python.py`, `DSCFlip.py`, `crc.py` | TensorFlow SC/DSCF reference implementation and CRC |
+| `cpp/` | AFF3CT extensions, pybind11 bindings, and CMake build |
+| `jobs/aff3ct.sbatch` | Slurm experiment launcher |
+| `test_code_offset*.py` | Enrollment and native integration tests |
+
+## References
+
+[1] B. Chen, T. Ignatenko, F. M. J. Willems, R. Maes, E. van der Sluis, and G. N. Selimis, “A Robust SRAM-PUF Key Generation Scheme Based on Polar Codes,” in *Proc. IEEE Global Communications Conference (GLOBECOM)*, 2017, pp. 1–6. doi: [10.1109/GLOCOM.2017.8254007](https://doi.org/10.1109/GLOCOM.2017.8254007).
+
+[2] B. Chen and F. M. J. Willems, “Secret Key Generation Over Biased Physical Unclonable Functions With Polar Codes,” *IEEE Internet of Things Journal*, vol. 6, no. 1, pp. 435–445, Feb. 2019. doi: [10.1109/JIOT.2018.2864594](https://doi.org/10.1109/JIOT.2018.2864594).
+
+[3] A. Cassagne *et al.*, “AFF3CT: A Fast Forward Error Correction Toolbox!,” *SoftwareX*, vol. 10, Art. no. 100345, 2019. doi: [10.1016/j.softx.2019.100345](https://doi.org/10.1016/j.softx.2019.100345). See also the [official AFF3CT repository](https://github.com/aff3ct/aff3ct).
