@@ -128,33 +128,6 @@ The native driver runs the enrollment-scheme/decoder combinations selected in `c
 python sim_python.py
 ```
 
-**Slurm / ECE HPC:** Ensure `jobs/aff3ct.sbatch` has a valid account, partition, QoS, project path, and Conda environment for your cluster. Create `jobs/logs` **before submission**:
-
-```bash
-mkdir -p jobs/logs
-
-# Four jobs: both schemes, SC and DSCF
-for scheme in syndrome code_offset; do
-  for case in SC DSCF; do
-    sbatch --job-name="${case}_${scheme}" \
-      --export=ALL,PUF_CASE="$case",PUF_SCHEME="$scheme" \
-      jobs/aff3ct.sbatch
-  done
-done
-
-# Six jobs: both schemes, SCL list sizes 2, 4, and 8
-for scheme in syndrome code_offset; do
-  for L in 2 4 8; do
-    sbatch --job-name="SCL_L${L}_${scheme}" \
-      --export=ALL,PUF_CASE="SCL_L${L}",PUF_SCHEME="$scheme" \
-      jobs/aff3ct.sbatch
-  done
-done
-
-squeue -u "$USER"
-```
-
-Slurm runs use unique `results/ece/job_<ID>_<DECODER>_<SCHEME>/` directories, including CSV files and `run_settings.json`; logs are under `jobs/logs/`. `PUF_CASE=SCL` **is not valid**: use `SCL_L2`, `SCL_L4`, etc.
 
 ## 6. Enrollment and interpretation
 
@@ -169,18 +142,6 @@ For syndrome enrollment, form the full offset `Z = encode(0_info, W_frozen)`. Bo
 
 **Limitations:** For biased PUFs (`P(X=1) ≠ 0.5`), the current prior-adjusted LLR is a baseline, not a proof of optimal helper-conditioned decoding or key secrecy. Public helper data **and** key-confirmation tags can leak information. The native CRC checker must not be assumed bit-for-bit identical to the standalone polynomial CRC layer without verification. `normalized_complexity` is an SC-equivalent model (nominally `L` for SCL), not measured execution time. Zero observed failures does not imply zero failure probability.
 
-## 7. Main files
-
-| Path | Purpose |
-| --- | --- |
-| `config.py` | Simulation configuration and validation |
-| `Enrolment.py`, `keycheck.py` | SRAM-PUF enrollment and public key verification |
-| `constructions.py`, `utils.py` | Polar construction, transforms, channels, and utilities |
-| `sim_aff3ct.py` | Native SC/DSCF/SCL Monte Carlo |
-| `sim_python.py`, `DSCFlip.py`, `crc.py` | TensorFlow SC/DSCF reference implementation and CRC |
-| `cpp/` | AFF3CT extensions, pybind11 bindings, and CMake build |
-| `jobs/aff3ct.sbatch` | Slurm experiment launcher |
-| `test_code_offset*.py` | Enrollment and native integration tests |
 
 ## References
 
