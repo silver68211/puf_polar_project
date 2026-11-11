@@ -14,7 +14,7 @@ The project compares **syndrome (transform)** and **code-offset** enrollment ove
 
 ## 2. Install and build
 
-Run the following commands in a terminal. No administrator access is required.
+Run the following commands in a terminal.
 
 **Get this repository and create the Python environment:**
 
