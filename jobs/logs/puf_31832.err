@@ -1,0 +1,9 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794133983.168264  548287 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+I0000 00:00:1794133983.170398  548287 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794134013.020634  548287 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+I0000 00:00:1794134013.022513  548287 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** JOB 31832 ON ecenod302 CANCELLED AT 2026-11-09T08:39:33 ***
+slurmstepd: error: *** STEP 31832.0 ON ecenod302 CANCELLED AT 2026-11-09T08:39:33 ***

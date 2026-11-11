@@ -2,23 +2,34 @@
 """
 AFF3CT polar SRAM-PUF Monte Carlo simulation.
 
+Enrollment schemes:
+    syndrome    : PUF-derived key, N-K helper bits
+    code_offset : Independent key, N helper bits
+
 Supported decoders:
     SC
     DSCF
     SCL
 
-All simulation settings are loaded from config.py.
+Supported polar constructions:
+    5G
+    BSC
+    OURS
 
 Normalized decoding complexity:
     SC   = 1
-    DSCF = total SC passes / decoded frames
+    DSCF = average number of SC decoding passes
     SCL  = L (nominal SC-equivalent complexity)
 
-Each decoder has a separate CSV file containing:
+Each enrollment scheme and decoder combination is
+saved in a separate CSV file containing:
+
     p, BLER, normalized_complexity
 
-All progress reporting is performed by the C++ engine.
-No plots or Python progress messages are generated.
+Native C++ performs Monte Carlo simulation and
+live progress reporting.
+
+No figures are generated.
 """
 
 from __future__ import annotations
@@ -44,16 +55,58 @@ CSV_COLUMNS = (
 
 
 # ============================================================
-# 1. Select decoder configurations
+# 1. Select enrollment schemes
 # ============================================================
 
+def get_enrollment_schemes(cfg):
+
+    selected = getattr(
+        cfg,
+        "enrollment_schemes",
+        ("syndrome",),
+    )
+
+    if isinstance(selected, str):
+        selected = (selected,)
+
+    schemes = []
+
+    for scheme in selected:
+
+        name = str(scheme).strip().lower()
+
+        if name == "transform":
+            name = "syndrome"
+
+        if name not in ("syndrome", "code_offset"):
+            raise ValueError(
+                "Enrollment schemes must be "
+                "'syndrome' or 'code_offset'."
+            )
+
+        if name in schemes:
+            raise ValueError(
+                f"Duplicate enrollment scheme: {name}"
+            )
+
+        schemes.append(name)
+
+    if not schemes:
+        raise ValueError(
+            "At least one enrollment scheme is required."
+        )
+
+    return tuple(schemes)
+
+
+# ============================================================
+# 2. Select decoder configurations
+# ============================================================
 
 def get_decoder_runs(cfg):
-    """Return the selected decoder and list-size combinations."""
 
     selected = cfg.decoder
 
-    # Also accept a single decoder string for compatibility.
     if isinstance(selected, str):
         selected = (selected,)
 
@@ -62,14 +115,21 @@ def get_decoder_runs(cfg):
         for name in selected
     )
 
-    valid_decoders = {"SC", "DSCF", "SCL"}
+    valid_decoders = {
+        "SC",
+        "DSCF",
+        "SCL",
+    }
 
     if not selected:
         raise ValueError(
             "At least one decoder must be selected."
         )
 
-    if any(name not in valid_decoders for name in selected):
+    if any(
+        name not in valid_decoders
+        for name in selected
+    ):
         raise ValueError(
             "Valid decoders are SC, DSCF, and SCL."
         )
@@ -84,6 +144,7 @@ def get_decoder_runs(cfg):
     for name in selected:
 
         if name in ("SC", "DSCF"):
+
             runs.append((name, 1))
 
         elif name == "SCL":
@@ -106,7 +167,8 @@ def get_decoder_runs(cfg):
 
                 if L < 1 or (L & (L - 1)):
                     raise ValueError(
-                        "SCL list sizes must be positive powers of two."
+                        "SCL list sizes must be "
+                        "positive powers of two."
                     )
 
                 runs.append(("SCL", L))
@@ -115,18 +177,29 @@ def get_decoder_runs(cfg):
 
 
 # ============================================================
-# 2. Construct the polar code
+# 3. Construct polar code
 # ============================================================
 
 def construct_polar_code(cfg, n, k):
 
     construction = str(
-        getattr(cfg, "construction", "BSC")
+        cfg.construction
     ).strip().upper()
+
+    # --------------------------------------------------------
+    # 5G construction
+    # --------------------------------------------------------
 
     if construction == "5G":
 
-        frozen, info = generate_5g_ranking(k, n)
+        frozen, info = generate_5g_ranking(
+            k,
+            n,
+        )
+
+    # --------------------------------------------------------
+    # BSC Bhattacharyya construction
+    # --------------------------------------------------------
 
     elif construction in ("BSC", "BHATTACHARYYA"):
 
@@ -136,7 +209,7 @@ def construct_polar_code(cfg, n, k):
 
         if not (0.0 < design_p < 0.5):
             raise ValueError(
-                "design_p must be in (0, 0.5)."
+                "design_p must lie in (0, 0.5)."
             )
 
         frozen, info, _ = bhattacharyya_design(
@@ -148,25 +221,96 @@ def construct_polar_code(cfg, n, k):
 
         construction = "BSC"
 
-    else:
-        raise ValueError(
-            "construction must be 5G or BSC."
+    # --------------------------------------------------------
+    # Custom OURS construction
+    # --------------------------------------------------------
+
+    elif construction == "OURS":
+
+        default_path = (
+            f"codes/frozen_bits_N{n}_K{k}_our.csv"
         )
 
+        frozen_path = Path(
+            getattr(
+                cfg,
+                "ours_frozen_path",
+                None,
+            ) or default_path
+        )
+
+        if not frozen_path.is_file():
+            raise FileNotFoundError(
+                f"Custom frozen-bit file not found: "
+                f"{frozen_path}"
+            )
+
+        raw = np.loadtxt(
+            frozen_path,
+            delimiter=",",
+            ndmin=1,
+        ).ravel()
+
+        if (
+            not np.all(np.isfinite(raw))
+            or not np.all(raw == np.rint(raw))
+        ):
+            raise ValueError(
+                "Custom frozen positions must be "
+                "finite integers."
+            )
+
+        frozen = raw.astype(np.int32)
+
+        if (
+            np.any(frozen < 0)
+            or np.any(frozen >= n)
+            or len(np.unique(frozen)) != len(frozen)
+        ):
+            raise ValueError(
+                "Custom frozen positions contain "
+                "duplicates or invalid indices."
+            )
+
+        info = np.setdiff1d(
+            np.arange(n),
+            frozen,
+        )
+
+    else:
+
+        raise ValueError(
+            "construction must be 5G, BSC, or OURS."
+        )
+
+    # --------------------------------------------------------
+    # Sort and validate frozen/information positions
+    # --------------------------------------------------------
+
     frozen = np.sort(
-        np.asarray(frozen, dtype=np.int32)
+        np.asarray(
+            frozen,
+            dtype=np.int32,
+        )
     )
 
     info = np.sort(
-        np.asarray(info, dtype=np.int32)
+        np.asarray(
+            info,
+            dtype=np.int32,
+        )
     )
 
     if (
         len(frozen) != n - k
         or len(info) != k
         or not np.array_equal(
-            np.sort(np.concatenate((frozen, info))),
-            np.arange(n)
+            np.sort(
+                np.concatenate(
+                    (frozen, info)
+                )
+            ),
+            np.arange(n),
         )
     ):
         raise ValueError(
@@ -177,14 +321,14 @@ def construct_polar_code(cfg, n, k):
 
 
 # ============================================================
-# 3. Prepare output CSV
+# 4. CSV utilities
 # ============================================================
 
 def create_csv(out_dir, filename):
 
     out_dir.mkdir(
         parents=True,
-        exist_ok=True
+        exist_ok=True,
     )
 
     path = out_dir / filename
@@ -192,12 +336,12 @@ def create_csv(out_dir, filename):
     with path.open(
         "w",
         newline="",
-        encoding="utf-8"
+        encoding="utf-8",
     ) as f:
 
         writer = csv.DictWriter(
             f,
-            fieldnames=CSV_COLUMNS
+            fieldnames=CSV_COLUMNS,
         )
 
         writer.writeheader()
@@ -210,12 +354,12 @@ def append_csv(path, row):
     with path.open(
         "a",
         newline="",
-        encoding="utf-8"
+        encoding="utf-8",
     ) as f:
 
         writer = csv.DictWriter(
             f,
-            fieldnames=CSV_COLUMNS
+            fieldnames=CSV_COLUMNS,
         )
 
         writer.writerow({
@@ -227,13 +371,24 @@ def append_csv(path, row):
 
 
 # ============================================================
-# 4. Verify Monte Carlo results
+# 5. Verify Monte Carlo results
 # ============================================================
 
-def verify_result(result, decoder, L, trials, nlogn, max_blocks):
+def verify_result(
+    result,
+    decoder,
+    L,
+    trials,
+    nlogn,
+    max_blocks,
+):
 
     blocks = int(result["blocks"])
-    units = int(result["total_sc_equivalent_units"])
+
+    units = int(
+        result["total_sc_equivalent_units"]
+    )
+
     passes = result["total_sc_passes"]
 
     complexity = float(
@@ -245,32 +400,44 @@ def verify_result(result, decoder, L, trials, nlogn, max_blocks):
             "Invalid Monte Carlo block count."
         )
 
-    if result["nlogn_per_pass"] != nlogn:
+    if int(result["nlogn_per_pass"]) != nlogn:
         raise RuntimeError(
             "Incorrect N log2(N) operation count."
         )
 
     if (
-        result["total_sc_equivalent_ops"]
+        int(result["total_sc_equivalent_ops"])
         != units * nlogn
     ):
         raise RuntimeError(
-            "Inconsistent SC-equivalent operations."
+            "Inconsistent SC-equivalent operation count."
         )
 
     if not np.isclose(
         complexity,
         units / blocks,
         rtol=1e-12,
-        atol=1e-12
+        atol=1e-12,
     ):
         raise RuntimeError(
             "Incorrect normalized complexity."
         )
 
+    # --------------------------------------------------------
+    # SC
+    # --------------------------------------------------------
+
     if decoder == "SC":
 
-        if passes != blocks or units != blocks:
+        if passes is None:
+            raise RuntimeError(
+                "Missing SC pass counter."
+            )
+
+        if (
+            int(passes) != blocks
+            or units != blocks
+        ):
             raise RuntimeError(
                 "SC must execute one pass per frame."
             )
@@ -280,9 +447,18 @@ def verify_result(result, decoder, L, trials, nlogn, max_blocks):
                 "SC normalized complexity must be 1."
             )
 
+    # --------------------------------------------------------
+    # DSCF
+    # --------------------------------------------------------
+
     elif decoder == "DSCF":
 
-        if passes != units:
+        if passes is None:
+            raise RuntimeError(
+                "Missing DSCF pass counter."
+            )
+
+        if int(passes) != units:
             raise RuntimeError(
                 "DSCF complexity counter mismatch."
             )
@@ -294,6 +470,10 @@ def verify_result(result, decoder, L, trials, nlogn, max_blocks):
                 "Invalid DSCF decoding attempts."
             )
 
+    # --------------------------------------------------------
+    # SCL
+    # --------------------------------------------------------
+
     elif decoder == "SCL":
 
         if units != blocks * L:
@@ -301,7 +481,10 @@ def verify_result(result, decoder, L, trials, nlogn, max_blocks):
                 "Incorrect nominal SCL complexity."
             )
 
-        if complexity != float(L):
+        if not np.isclose(
+            complexity,
+            float(L),
+        ):
             raise RuntimeError(
                 "SCL normalized complexity must equal L."
             )
@@ -313,38 +496,108 @@ def verify_result(result, decoder, L, trials, nlogn, max_blocks):
 
 
 # ============================================================
-# 5. Main simulation
+# 6. Verify enrollment before simulation
+# ============================================================
+
+def verify_enrollment(
+    device,
+    frozen,
+    info,
+):
+
+    """
+    Confirm that applying the enrollment offset to
+    the enrolled PUF response produces a valid
+    zero-frozen polar codeword encoding the key.
+
+    This verification works for both enrollment
+    schemes.
+    """
+
+    if device.offset is None:
+        raise RuntimeError(
+            "Enrollment result has no offset. "
+            "Update Enrolment.py first."
+        )
+
+    x = device.x.astype(np.uint8)
+
+    z = device.offset.astype(np.uint8)
+
+    codeword = device.codeword.astype(np.uint8)
+
+    # Physical response XOR offset = codeword.
+    np.testing.assert_array_equal(
+        x ^ z,
+        codeword,
+        err_msg="Enrollment offset identity failed.",
+    )
+
+    # Polar transform is self-inverse.
+    recovered_u = polar_transform_bits(
+        codeword
+    )
+
+    # Frozen bits must be zero.
+    if not np.all(
+        recovered_u[:, frozen] == 0
+    ):
+        raise RuntimeError(
+            "Codeword has nonzero frozen bits."
+        )
+
+    # Information bits must equal enrolled key.
+    np.testing.assert_array_equal(
+        recovered_u[:, info],
+        device.key,
+        err_msg="Enrolled key consistency check failed.",
+    )
+
+
+# ============================================================
+# 7. Main simulation
 # ============================================================
 
 def simulate(cfg: SimConfig) -> list[dict]:
 
-    # ------------------------------------------------------
+    # --------------------------------------------------------
     # Simulation parameters
-    # ------------------------------------------------------
+    # --------------------------------------------------------
 
     n = 1 << int(cfg.n_log2)
+
     k = int(cfg.key_length)
 
-    q = float(cfg.puf_one_probability)
+    q = float(
+        cfg.puf_one_probability
+    )
 
     p_values = tuple(
         float(p) for p in cfg.p_values
     )
 
     trials = int(cfg.num_trials)
+
     alpha = float(cfg.alpha)
 
     min_errors = int(cfg.min_block_errors)
+
     max_blocks = int(cfg.max_blocks)
 
-    checker_kind = str(cfg.checker).strip().lower()
+    checker_kind = str(
+        cfg.checker
+    ).strip().lower()
 
     seed = int(
         getattr(cfg, "seed", 2026)
     )
 
     scramble = bool(
-        getattr(cfg, "scramble_codeword", False)
+        getattr(
+            cfg,
+            "scramble_codeword",
+            False,
+        )
     )
 
     available_cpus = (
@@ -354,17 +607,23 @@ def simulate(cfg: SimConfig) -> list[dict]:
     )
 
     threads = int(
-        getattr(cfg, "num_threads", available_cpus)
+        getattr(
+            cfg,
+            "num_threads",
+            available_cpus,
+        )
     )
 
     out_dir = Path(cfg.out_dir)
 
-    # ------------------------------------------------------
-    # Validate parameters
-    # ------------------------------------------------------
+    # --------------------------------------------------------
+    # Validate simulation parameters
+    # --------------------------------------------------------
 
     if not (1 <= k < n):
-        raise ValueError("Require 0 < K < N.")
+        raise ValueError(
+            "Require 0 < K < N."
+        )
 
     if not (0.0 < q < 1.0):
         raise ValueError(
@@ -377,7 +636,8 @@ def simulate(cfg: SimConfig) -> list[dict]:
         )
 
     if not p_values or any(
-        not (0.0 <= p < 0.5) for p in p_values
+        not (0.0 <= p < 0.5)
+        for p in p_values
     ):
         raise ValueError(
             "BSC probabilities must be in [0, 0.5)."
@@ -388,25 +648,25 @@ def simulate(cfg: SimConfig) -> list[dict]:
             "num_threads must be positive."
         )
 
-    if trials < 0 or alpha <= 0:
+    if trials < 0:
         raise ValueError(
-            "Invalid DSCF parameters."
+            "num_trials cannot be negative."
+        )
+
+    if alpha <= 0:
+        raise ValueError(
+            "alpha must be positive."
         )
 
     if min_errors < 1 or max_blocks < 1:
         raise ValueError(
-            "Invalid Monte Carlo stopping limits."
-        )
-
-    if getattr(cfg, "compare_code_offset", False):
-        raise NotImplementedError(
-            "compare_code_offset is not supported "
-            "by this native Monte Carlo engine."
+            "Monte Carlo stopping limits "
+            "must be positive."
         )
 
     if checker_kind not in ("hash", "crc"):
         raise ValueError(
-            "checker must be hash or crc."
+            "checker must be 'hash' or 'crc'."
         )
 
     if checker_kind == "hash":
@@ -425,28 +685,40 @@ def simulate(cfg: SimConfig) -> list[dict]:
                 "and between 8 and 256."
             )
 
-    if checker_kind == "crc":
+    elif checker_kind == "crc":
 
         if str(cfg.crc_degree).upper() != "CRC16":
             raise ValueError(
                 "Native checker supports CRC16 only."
             )
 
-    decoder_runs = get_decoder_runs(cfg)
+    # --------------------------------------------------------
+    # Selected schemes and decoders
+    # --------------------------------------------------------
 
-    # ------------------------------------------------------
-    # Polar-code construction
-    # ------------------------------------------------------
-
-    frozen, info, construction = construct_polar_code(
-        cfg, n, k
+    enrollment_schemes = get_enrollment_schemes(
+        cfg
     )
 
-    # ------------------------------------------------------
-    # Enroll one fixed SRAM-PUF device
-    # ------------------------------------------------------
+    decoder_runs = get_decoder_runs(
+        cfg
+    )
 
-    rng = np.random.default_rng(seed)
+    # --------------------------------------------------------
+    # Polar-code construction
+    # --------------------------------------------------------
+
+    frozen, info, construction = (
+        construct_polar_code(
+            cfg,
+            n,
+            k,
+        )
+    )
+
+    # --------------------------------------------------------
+    # Key verification
+    # --------------------------------------------------------
 
     checker = KeyChecker(
         method=checker_kind,
@@ -454,6 +726,16 @@ def simulate(cfg: SimConfig) -> list[dict]:
         hash_bits=int(cfg.hash_bits),
         crc_degree=cfg.crc_degree,
     )
+
+    checker_id = (
+        "sha256"
+        if checker_kind == "hash"
+        else "crc16"
+    )
+
+    # --------------------------------------------------------
+    # Enrollment object
+    # --------------------------------------------------------
 
     enrollment = SRAMPUFEnrollment(
         n,
@@ -463,47 +745,73 @@ def simulate(cfg: SimConfig) -> list[dict]:
         prob_one=q,
     )
 
+    # --------------------------------------------------------
+    # Generate ONE fixed physical PUF response.
+    #
+    # Both schemes use exactly the same X.
+    # --------------------------------------------------------
+
+    rng_puf = np.random.default_rng(
+        seed
+    )
+
     if cfg.all_zero_device:
 
-        device = enrollment.enroll(
-            x=np.zeros((1, n), dtype=np.uint8),
-            rng=rng,
+        physical_x = np.zeros(
+            (1, n),
+            dtype=np.uint8,
         )
 
     else:
 
-        device = enrollment.enroll(
-            batch_size=1,
-            rng=rng,
-        )
+        physical_x = None
 
-    # ------------------------------------------------------
-    # Prepare physical response, coset and secret
-    # ------------------------------------------------------
-
-    x = device.x[0].astype(np.uint8).tolist()
-
-    z = polar_transform_bits(
-        device.frozen_full
-    )[0].astype(np.uint8).tolist()
-
-    secret = device.key[0].astype(np.uint8).tolist()
-
-    public_tag = device.tag[0].astype(np.uint8).tolist()
-
-    checker_id = (
-        "sha256"
-        if checker_kind == "hash"
-        else "crc16"
+    syndrome_device = enrollment.enroll(
+        batch_size=1,
+        x=physical_x,
+        rng=rng_puf,
+        scheme="syndrome",
     )
 
-    # ------------------------------------------------------
+    # Save the same physical X for both constructions.
+    physical_x = syndrome_device.x.copy()
+
+    # --------------------------------------------------------
+    # Independent RNG for conventional code-offset key.
+    #
+    # The key must not be derived from X.
+    # --------------------------------------------------------
+
+    rng_key = np.random.default_rng(
+        np.random.SeedSequence(
+            [seed, 0xC0DE]
+        )
+    )
+
+    # --------------------------------------------------------
+    # Verify algebraic equivalence for the paired case.
+    # --------------------------------------------------------
+
+    _, paired_offset = enrollment.code_offset(
+        syndrome_device
+    )
+
+    np.testing.assert_array_equal(
+        paired_offset,
+        syndrome_device.offset,
+        err_msg=(
+            "Syndrome/code-offset paired "
+            "equivalence failed."
+        ),
+    )
+
+    # --------------------------------------------------------
     # Output directory and filename prefix
-    # ------------------------------------------------------
+    # --------------------------------------------------------
 
     out_dir.mkdir(
         parents=True,
-        exist_ok=True
+        exist_ok=True,
     )
 
     prefix = (
@@ -512,21 +820,33 @@ def simulate(cfg: SimConfig) -> list[dict]:
     )
 
     if checker_kind == "hash":
-        prefix += f"{int(cfg.hash_bits)}"
+        prefix += str(int(cfg.hash_bits))
 
     all_rows = []
 
-    # ------------------------------------------------------
-    # Run each decoder independently
-    # ------------------------------------------------------
-    print("=" * 120)
+    # ========================================================
+    # 8. Simulation information
+    # ========================================================
+
+    print("=" * 100)
     print("AFF3CT POLAR SRAM-PUF MONTE CARLO")
-    print("=" * 120)
+    print("=" * 100)
 
     print(f"N={n}, K={k}")
     print(f"Construction: {construction}")
-    print(f"Decoder: {decoder_runs}")
-    print(f"DSCF: T={trials}, alpha={alpha}")
+
+    print(
+        f"Enrollment schemes: {enrollment_schemes}"
+    )
+
+    print(
+        f"Decoder configurations: {decoder_runs}"
+    )
+
+    print(
+        f"DSCF: T={trials}, alpha={alpha}"
+    )
+
     print(f"Checker: {checker_kind}")
     print(f"Threads: {threads}")
     print(f"Scrambling: {scramble}")
@@ -534,120 +854,242 @@ def simulate(cfg: SimConfig) -> list[dict]:
     print(f"Seed: {seed}")
 
     print(
-        "Normalized complexity = "
-        "total SC passes / decoded frames"
+        "Complexity: actual SC passes for SC/DSCF; "
+        "nominal L for SCL."
     )
 
-    
-    for decoder_name, L in decoder_runs:
-        print("=" * 120)
-        # ------------------------------------------
-        # Decoder-specific CSV filename
-        # ------------------------------------------
+    print("=" * 100, flush=True)
 
-        if decoder_name == "SC":
+    # ========================================================
+    # 9. Run each enrollment scheme
+    # ========================================================
 
-            filename = f"{prefix}_SC.csv"
-            label = "SC"
+    for scheme in enrollment_schemes:
 
-        elif decoder_name == "DSCF":
+        # ----------------------------------------------------
+        # Enroll with the selected scheme
+        # ----------------------------------------------------
 
-            filename = (
-                f"{prefix}_DSCF_T{trials}.csv"
+        if scheme == "syndrome":
+
+            device = syndrome_device
+
+        elif scheme == "code_offset":
+
+            device = enrollment.enroll(
+                x=physical_x,
+                rng=rng_key,
+                scheme="code_offset",
             )
-
-            label = "DSCF"
 
         else:
 
-            filename = (
-                f"{prefix}_SCL_L{L}.csv"
+            raise RuntimeError(
+                f"Unknown enrollment scheme: {scheme}"
             )
 
-            label = f"SCL_L{L}"
+        # ----------------------------------------------------
+        # Verify this enrollment
+        # ----------------------------------------------------
 
-        csv_path = create_csv(
-            out_dir,
-            filename
+        verify_enrollment(
+            device,
+            frozen,
+            info,
         )
 
-        # ------------------------------------------
-        # Initialize the native C++ engine
-        # ------------------------------------------
+        # ----------------------------------------------------
+        # Prepare inputs for native C++ simulation
+        # ----------------------------------------------------
 
-        engine = BSCMonteCarloPolar(
-            n=n,
-            frozen_positions=frozen.tolist(),
-            x=x,
-            z=z,
-            secret=secret,
-            expected_tag=public_tag,
-            decoder=decoder_name,
-            checker=checker_id,
-            hash_bits=int(cfg.hash_bits),
-            prob_one=q,
-            num_threads=threads,
-            alpha=alpha,
-            num_trials=trials,
-            scramble_codeword=scramble,
-            seed=seed,
-            list_size=L,
+        x = device.x[0].astype(
+            np.uint8
+        ).tolist()
+
+        # IMPORTANT:
+        #
+        # device.offset works for BOTH schemes.
+        #
+        # syndrome:
+        #   offset = W_full G_N
+        #
+        # code_offset:
+        #   offset = X XOR encode(secret)
+        #
+        # Do not use device.frozen_full here.
+        # It is None for conventional code-offset.
+
+        z = device.offset[0].astype(
+            np.uint8
+        ).tolist()
+
+        secret = device.key[0].astype(
+            np.uint8
+        ).tolist()
+
+        public_tag = device.tag[0].astype(
+            np.uint8
+        ).tolist()
+
+        # ----------------------------------------------------
+        # Scheme-specific filename prefix
+        # ----------------------------------------------------
+
+        scheme_prefix = (
+            f"{prefix}_{scheme.upper()}"
         )
 
-        # ------------------------------------------
-        # Iterate over BSC probabilities
-        # ------------------------------------------
+        print()
+        print("=" * 100)
+        print(f"ENROLLMENT: {scheme.upper()}")
+        print("=" * 100)
 
-        for p in p_values:
+        print(
+            f"Helper bits: {device.helper.shape[1]}"
+        )
 
-            # C++ handles all live terminal output.
-            result = engine.run(
-                p=p,
-                min_errors=min_errors,
-                max_blocks=max_blocks,
+        print(
+            f"Secret bits: {len(secret)}"
+        )
+
+        print(
+            f"Output prefix: {scheme_prefix}"
+        )
+
+        print("=" * 100, flush=True)
+
+        # ====================================================
+        # 10. Run each decoder
+        # ====================================================
+
+        for decoder_name, L in decoder_runs:
+
+            # ------------------------------------------------
+            # Decoder-specific CSV filename
+            # ------------------------------------------------
+
+            if decoder_name == "SC":
+
+                filename = (
+                    f"{scheme_prefix}_SC.csv"
+                )
+
+                label = "SC"
+
+            elif decoder_name == "DSCF":
+
+                filename = (
+                    f"{scheme_prefix}_DSCF_T{trials}.csv"
+                )
+
+                label = "DSCF"
+
+            else:
+
+                filename = (
+                    f"{scheme_prefix}_SCL_L{L}.csv"
+                )
+
+                label = f"SCL_L{L}"
+
+            csv_path = create_csv(
+                out_dir,
+                filename,
             )
 
-            # --------------------------------------
-            # Validate complexity calculations
-            # --------------------------------------
+            # ------------------------------------------------
+            # Initialize native C++ Monte Carlo engine
+            # ------------------------------------------------
 
-            verify_result(
-                result=result,
+            engine = BSCMonteCarloPolar(
+                n=n,
+                frozen_positions=frozen.tolist(),
+                x=x,
+                z=z,
+                secret=secret,
+                expected_tag=public_tag,
                 decoder=decoder_name,
-                L=L,
-                trials=trials,
-                nlogn=n * int(cfg.n_log2),
-                max_blocks=max_blocks,
+                checker=checker_id,
+                hash_bits=int(cfg.hash_bits),
+                prob_one=q,
+                num_threads=threads,
+                alpha=alpha,
+                num_trials=trials,
+                scramble_codeword=scramble,
+                seed=seed,
+                list_size=L,
             )
 
-            # --------------------------------------
-            # Store only requested CSV columns
-            # --------------------------------------
+            # ------------------------------------------------
+            # Run over crossover probabilities
+            # ------------------------------------------------
 
-            row = {
-                "p": p,
-                "BLER": float(result["BLER"]),
-                "normalized_complexity": float(
-                    result["normalized_complexity"]
-                ),
-            }
+            for p in p_values:
 
-            # Save immediately after each p.
-            append_csv(csv_path, row)
+                # Native C++ performs Monte Carlo
+                # and displays live progress.
 
-            # Keep full in-memory identification
-            # for possible later processing.
-            all_rows.append({
-                "decoder": label,
-                **row,
-            })
+                result = engine.run(
+                    p=p,
+                    min_errors=min_errors,
+                    max_blocks=max_blocks,
+                )
+
+                # --------------------------------------------
+                # Verify complexity counters
+                # --------------------------------------------
+
+                verify_result(
+                    result=result,
+                    decoder=decoder_name,
+                    L=L,
+                    trials=trials,
+                    nlogn=n * int(cfg.n_log2),
+                    max_blocks=max_blocks,
+                )
+
+                # --------------------------------------------
+                # CSV: exactly three columns
+                # --------------------------------------------
+
+                row = {
+                    "p": p,
+
+                    "BLER": float(
+                        result["BLER"]
+                    ),
+
+                    "normalized_complexity": float(
+                        result["normalized_complexity"]
+                    ),
+                }
+
+                # Write after each completed p.
+                append_csv(
+                    csv_path,
+                    row,
+                )
+
+                # --------------------------------------------
+                # Retain metadata in memory
+                # --------------------------------------------
+
+                all_rows.append({
+                    "scheme": scheme,
+                    "decoder": label,
+                    "list_size": L,
+                    **row,
+                })
 
     return all_rows
 
 
 # ============================================================
-# 6. Main
+# 11. Main
 # ============================================================
 
 if __name__ == "__main__":
-    simulate(SimConfig())
+
+    simulate(
+        SimConfig()
+    )

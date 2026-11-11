@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "<stdin>", line 13, in <module>
+srun: error: ecenod302: task 0: Exited with exit code 1
+  File "/home/hnksm/puf_polar_project/config.py", line 158
+    "SC", DSCF"
+              ^
+SyntaxError: unterminated string literal (detected at line 158)

@@ -1,0 +1,59 @@
+Native AFF3CT engine: OK
+
+============================================================
+ECE HPC - POLAR SRAM-PUF MONTE CARLO
+============================================================
+Job ID:             32095
+Job name:           SC_SYN
+Decoder case:       SC
+Enrollment scheme:  syndrome
+Node:               ecenod302
+Start time:         Tue Nov 10 06:23:03 PM HKT 2026
+Partition:          cpu-share
+Account:            eewhmow
+Allocated CPUs:     16
+Visible CPUs:       1
+CPU affinity:       0-15
+Python:             /home/hnksm/.conda/envs/puf_aff3ct/bin/python
+Conda environment:  puf_aff3ct
+Results:            /home/hnksm/puf_polar_project/results/ece/job_32095_SC_syndrome
+============================================================
+
+======================================================================
+Starting AFF3CT polar SRAM-PUF Monte Carlo
+======================================================================
+Decoder:      ('SC',)
+List sizes:   None
+Enrollment:   ('syndrome',)
+N:            1024
+K:            128
+Construction: BSC
+BSC p values: (0.01, 0.03, 0.05, 0.07, 0.09, 0.11, 0.13)
+Threads:      16
+Seed:         2026
+Output:       /home/hnksm/puf_polar_project/results/ece/job_32095_SC_syndrome
+======================================================================
+====================================================================================================
+AFF3CT POLAR SRAM-PUF MONTE CARLO
+====================================================================================================
+N=1024, K=128
+Construction: BSC
+Enrollment schemes: ('syndrome',)
+Decoder configurations: [('SC', 1)]
+DSCF: T=10, alpha=0.3367
+Checker: hash
+Threads: 16
+Scrambling: True
+PUF P(X=1): 0.5
+Seed: 2026
+Complexity: actual SC passes for SC/DSCF; nominal L for SCL.
+====================================================================================================
+
+====================================================================================================
+ENROLLMENT: SYNDROME
+====================================================================================================
+Helper bits: 896
+Secret bits: 128
+Output prefix: BSC_N1024_K128_BSC_hash128_SYNDROME
+====================================================================================================
+[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:          0 | ERRs:        0 | COM: 0.00000e+00 | FRMs/s: 0.00000e+00[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:     113072 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.25866e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:     242720 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.42543e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:     370479 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.46850e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:     499735 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.49749e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:     628989 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.51489e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:     758743 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.52814e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:     888726 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.53830e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    1018551 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.54551e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    1148091 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.55048e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    1277900 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.55499e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    1407516 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.55832e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    1536986 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.56085e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    1666634 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.56327e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    1796333 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.56542e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    1926315 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.56766e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    2055978 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.56922e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    2186000 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.57102e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    2315750 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.57232e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    2445658 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.57365e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    2575467 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.57474e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    2705460 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.57591e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    2835612 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.57712e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    2965604 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.57808e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    3095200 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.57864e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    3224788 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.57914e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    3354664 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.57982e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    3484597 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.58050e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    3614796 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.58132e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    3744716 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.58189e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    3874864 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.58257e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    4004737 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.58304e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    4134838 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.58361e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    4264740 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.58403e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    4394773 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.58451e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    4524729 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.58491e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    4654508 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.58519e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    4784440 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.58554e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    4914303 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.58583e+05[2KDEC: SC         | P: 0.010 | BLER: 0.00000e+00 | FRMs:    5044202 | ERRs:        0 | COM: 1.00000e+00 | FRMs/s: 2.58613e+05

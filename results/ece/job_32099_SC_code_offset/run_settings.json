@@ -1,0 +1,59 @@
+{
+  "slurm_job_id": "32099",
+  "slurm_job_name": "SC_off",
+  "partition": "cpu-share",
+  "account": "eewhmow",
+  "hostname": "ecenod302",
+  "started_utc": "2026-11-10T10:28:38.675320+00:00",
+  "decoder_case": "SC",
+  "enrollment_scheme_request": "code_offset",
+  "allocated_cpus": 16,
+  "available_cpus": 16,
+  "simulation_threads": 16,
+  "python_executable": "/home/hnksm/.conda/envs/puf_aff3ct/bin/python",
+  "configuration": {
+    "n_log2": 10,
+    "key_length": 128,
+    "construction": "BSC",
+    "num_threads": 16,
+    "puf_one_probability": 0.5,
+    "all_zero_device": false,
+    "scramble_codeword": true,
+    "enrollment_schemes": [
+      "code_offset"
+    ],
+    "design_p": 0.15,
+    "p_values": [
+      0.15,
+      0.16,
+      0.18,
+      0.2,
+      0.22,
+      0.24,
+      0.26,
+      0.28,
+      0.3,
+      0.32
+    ],
+    "decoder": [
+      "SC"
+    ],
+    "num_trials": 10,
+    "alpha": 0.3367,
+    "list_sizes": [
+      2,
+      4,
+      8,
+      16
+    ],
+    "seed": 2026,
+    "checker": "hash",
+    "hash_name": "sha256",
+    "hash_bits": 128,
+    "crc_degree": "CRC16",
+    "batch_size": 10000,
+    "min_block_errors": 100,
+    "max_blocks": 10000000000,
+    "out_dir": "/home/hnksm/puf_polar_project/results/ece/job_32099_SC_code_offset"
+  }
+}

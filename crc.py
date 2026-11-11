@@ -1,120 +1,131 @@
-"""
-CRC encoder/decoder layers (generator-matrix based).
 
-- CRCEncoder: appends CRC parity bits to the last axis.
-- CRCDecoder: verifies CRC and removes parity bits.
+"""Generator-matrix CRC encoder and decoder for TensorFlow/Keras.
 
-Notes
------
-This implementation builds a CRC generator matrix G_crc (shape [k, crc_len])
-so that parity = (u @ G_crc) mod 2, where u are the information bits.
+CRCEncoder appends polynomial-remainder parity bits to the last axis.
+CRCDecoder checks those bits and returns (information_bits, valid_mask).
+Inputs must contain binary bits (0 or 1), with shape [..., K] and rank >= 2.
 """
 
 from __future__ import annotations
-
-from dataclasses import dataclass
-from typing import Dict, List, Tuple
 
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.layers import Layer
 
-from utils import int_mod_2  # expects integer tensor -> tensor mod 2
 
+# ============================================================
+# 1. CRC polynomial definitions
+# ============================================================
 
-# -----------------------------
-# CRC polynomial definitions
-# -----------------------------
-_CRC_SPECS: Dict[str, List[int]] = {
+_CRC_SPECS = {
     "CRC24A": [24, 23, 18, 17, 14, 11, 10, 7, 6, 5, 4, 3, 1, 0],
     "CRC24B": [24, 23, 6, 5, 1, 0],
     "CRC24C": [24, 23, 21, 20, 17, 15, 13, 12, 8, 4, 2, 1, 0],
     "CRC16": [16, 12, 5, 0],
     "CRC11": [11, 10, 9, 5, 0],
     "CRC6": [6, 5, 0],
-    # your extras:
     "CRC8": [8, 4, 3, 1, 0],
     "CRC8DVBS2": [8, 7, 6, 4, 2, 0],
 }
 
 
-def _crc_polynomial_bits(crc_degree: str) -> Tuple[np.ndarray, int]:
-    """
-    Return CRC polynomial in MSB->LSB order (length crc_len+1), and crc_len.
+def _crc_polynomial_bits(
+    crc_degree: str,
+) -> tuple[np.ndarray, int]:
+    """Return polynomial coefficients (MSB first) and CRC length."""
 
-    Example: CRC16 => length=17 bits.
-    """
     if crc_degree not in _CRC_SPECS:
         raise ValueError(
-            f"Invalid CRC Polynomial '{crc_degree}'. "
-            f"Supported: {sorted(_CRC_SPECS.keys())}"
+            f"Unknown CRC polynomial {crc_degree!r}. "
+            f"Choose from {sorted(_CRC_SPECS)}."
         )
 
-    coeffs = _CRC_SPECS[crc_degree]
-    crc_len = max(coeffs)
+    exponents = _CRC_SPECS[crc_degree]
+    crc_len = max(exponents)
 
-    pol = np.zeros(crc_len + 1, dtype=np.int32)
-    pol[coeffs] = 1
+    polynomial = np.zeros(
+        crc_len + 1,
+        dtype=np.uint8,
+    )
 
-    # Convert to MSB-first representation
-    pol_msb = pol[::-1].copy()
-    return pol_msb, crc_len
+    polynomial[exponents] = 1
+
+    return polynomial[::-1].copy(), crc_len
 
 
-def _gen_crc_matrix(k: int, pol_msb: np.ndarray) -> np.ndarray:
-    """
-    Build dense CRC generator matrix G_crc of shape [k, crc_len].
+# ============================================================
+# 2. CRC generator matrix
+# ============================================================
 
-    The method builds the remainders for unit vectors efficiently in O(k * crc_len).
-    """
-    crc_len = pol_msb.size - 1
-    g = np.zeros((k, crc_len), dtype=np.int32)
+def _gen_crc_matrix(
+    k: int,
+    pol_msb: np.ndarray,
+) -> np.ndarray:
+    """Return the binary parity matrix of shape (K, crc_len)."""
 
-    # Remainder register, MSB-first
-    rem = np.zeros(crc_len, dtype=np.int32)
-    rem[0] = 1
+    if k < 1:
+        raise ValueError(
+            "Information length K must be positive."
+        )
 
-    # Construct rows from last unit-vector to first (as in original)
+    crc_len = len(pol_msb) - 1
+
+    g = np.zeros(
+        (k, crc_len),
+        dtype=np.uint8,
+    )
+
+    # Remainder register, MSB first.
+    remainder = np.zeros(
+        crc_len,
+        dtype=np.uint8,
+    )
+
+    remainder[0] = 1
+
     for i in range(k):
-        # shift left by one (append 0)
-        rem_ext = np.concatenate([rem, [0]]).astype(np.int32)
-        if rem_ext[0] == 1:
-            rem_ext = np.bitwise_xor(rem_ext, pol_msb)
-        rem = rem_ext[1:]  # drop MSB
-        g[k - i - 1, :] = rem
+
+        extended = np.concatenate(
+            (remainder, [0])
+        ).astype(np.uint8)
+
+        if extended[0]:
+            extended ^= pol_msb
+
+        remainder = extended[1:]
+
+        g[k - 1 - i] = remainder
 
     return g
 
 
-# -----------------------------
-# Layers
-# -----------------------------
+# ============================================================
+# 3. CRC encoder
+# ============================================================
+
 class CRCEncoder(Layer):
-    """
-    CRCEncoder(crc_degree, dtype=tf.float32)
+    """Append CRC parity bits: [..., K] -> [..., K + crc_len]."""
 
-    Appends CRC parity bits to the last axis.
-
-    Parameters
-    ----------
-    crc_degree : str
-        One of: {CRC24A, CRC24B, CRC24C, CRC16, CRC11, CRC6, CRC8, CRC8DVBS2}
-    dtype : tf.DType
-        Output dtype. Internally uses float32 for matmul and int for mod-2.
-    """
-
-    def __init__(self, crc_degree: str, dtype: tf.DType = tf.float32, **kwargs):
-        super().__init__(dtype=dtype, **kwargs)
-
-        if not isinstance(crc_degree, str):
-            raise TypeError("crc_degree must be a str.")
+    def __init__(
+        self,
+        crc_degree: str,
+        dtype: tf.DType = tf.float32,
+        **kwargs,
+    ):
+        super().__init__(
+            dtype=dtype,
+            **kwargs,
+        )
 
         self._crc_degree = crc_degree
-        self._crc_pol_msb, self._crc_len = _crc_polynomial_bits(crc_degree)
 
-        self._k = None  # info length tracked after build
-        self._n = None  # total length = k + crc_len
-        self._g_mat_crc = None  # tf.Tensor [k, crc_len], float32
+        self._crc_pol_msb, self._crc_len = (
+            _crc_polynomial_bits(crc_degree)
+        )
+
+        self._k = None
+        self._n = None
+        self._g_mat_crc = None
 
     @property
     def crc_degree(self) -> str:
@@ -126,7 +137,7 @@ class CRCEncoder(Layer):
 
     @property
     def crc_pol(self) -> np.ndarray:
-        return self._crc_pol_msb
+        return self._crc_pol_msb.copy()
 
     @property
     def k(self) -> int | None:
@@ -136,63 +147,110 @@ class CRCEncoder(Layer):
     def n(self) -> int | None:
         return self._n
 
+    # --------------------------------------------------------
+    # Build the generator matrix once
+    # --------------------------------------------------------
+
     def build(self, input_shape):
+
         k = input_shape[-1]
-        if k is None:
-            raise ValueError("Last dimension (k) cannot be None for CRCEncoder.")
 
-        k = int(k)
-        g_np = _gen_crc_matrix(k, self._crc_pol_msb).astype(np.float32)
-        self._g_mat_crc = tf.constant(g_np, dtype=tf.float32)
+        if k is None or int(k) < 1:
+            raise ValueError(
+                "CRCEncoder needs a fixed, "
+                "positive last dimension K."
+            )
 
-        self._k = k
-        self._n = k + self._crc_len
+        self._k = int(k)
+        self._n = self._k + self._crc_len
+
+        g = _gen_crc_matrix(
+            self._k,
+            self._crc_pol_msb,
+        )
+
+        self._g_mat_crc = tf.constant(
+            g,
+            dtype=tf.float32,
+        )
+
         super().build(input_shape)
 
+    # --------------------------------------------------------
+    # Append CRC parity bits
+    # --------------------------------------------------------
+
     def call(self, inputs: tf.Tensor) -> tf.Tensor:
-        # rank >= 2
-        tf.debugging.assert_greater(tf.rank(inputs), 1)
 
-        # rebuild if k changed (e.g., dynamic shape)
-        k_in = inputs.shape[-1]
-        if (self._k is None) or (k_in is not None and int(k_in) != int(self._k)):
-            self.build(inputs.shape)
+        tf.debugging.assert_greater_equal(
+            tf.rank(inputs),
+            2,
+        )
 
-        x = tf.cast(inputs, tf.float32)
+        tf.debugging.assert_equal(
+            tf.shape(inputs)[-1],
+            self._k,
+            message=(
+                "CRCEncoder requires the information "
+                "length used at build time."
+            ),
+        )
 
-        # parity = (x @ G) mod 2  -> shape [..., crc_len]
-        parity = tf.linalg.matmul(x, self._g_mat_crc)
+        # Compute parity = (inputs @ G) mod 2.
+        sums = tf.linalg.matmul(
+            tf.cast(inputs, tf.float32),
+            self._g_mat_crc,
+        )
 
-        # mod-2 using integer ops
-        parity = tf.cast(parity, tf.int64)
-        parity = int_mod_2(parity)
-        parity = tf.cast(parity, self.dtype)
+        parity = tf.math.floormod(
+            tf.cast(sums, tf.int32),
+            2,
+        )
 
-        return tf.concat([tf.cast(inputs, self.dtype), parity], axis=-1)
+        return tf.concat(
+            [
+                tf.cast(inputs, self.compute_dtype),
+                tf.cast(parity, self.compute_dtype),
+            ],
+            axis=-1,
+        )
 
+    def get_config(self):
+
+        config = super().get_config()
+
+        config["crc_degree"] = self._crc_degree
+
+        return config
+
+
+# ============================================================
+# 4. CRC decoder
+# ============================================================
 
 class CRCDecoder(Layer):
-    """
-    CRCDecoder(crc_encoder, dtype=tf.float32)
+    """Verify CRC and return (information bits, valid flag)."""
 
-    Verifies CRC and removes parity bits.
-
-    Returns
-    -------
-    x_info : tf.Tensor [..., k]
-    crc_valid : tf.Tensor [..., 1] (bool)
-    """
-
-    def __init__(self, crc_encoder: CRCEncoder, dtype: tf.DType = tf.float32, **kwargs):
+    def __init__(
+        self,
+        crc_encoder: CRCEncoder,
+        dtype: tf.DType = tf.float32,
+        **kwargs,
+    ):
         if not isinstance(crc_encoder, CRCEncoder):
-            raise TypeError("crc_encoder must be an instance of CRCEncoder.")
-        self._encoder = crc_encoder
+            raise TypeError(
+                "crc_encoder must be a CRCEncoder instance."
+            )
 
-        # default dtype: match encoder if not given
         if dtype is None:
             dtype = crc_encoder.dtype
 
-        super().__init__(dtype=dtype, **kwargs)
+        super().__init__(
+            dtype=dtype,
+            **kwargs,
+        )
+
+        self._encoder = crc_encoder
 
     @property
     def crc_degree(self) -> str:
@@ -202,24 +260,75 @@ class CRCDecoder(Layer):
     def encoder(self) -> CRCEncoder:
         return self._encoder
 
-    def call(self, inputs: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
-        tf.debugging.assert_greater(tf.rank(inputs), 1)
+    # --------------------------------------------------------
+    # Verify and remove CRC parity bits
+    # --------------------------------------------------------
+
+    def call(
+        self,
+        inputs: tf.Tensor,
+    ) -> tuple[tf.Tensor, tf.Tensor]:
+
+        tf.debugging.assert_greater_equal(
+            tf.rank(inputs),
+            2,
+        )
 
         crc_len = self._encoder.crc_length
-        tf.debugging.assert_greater_equal(tf.shape(inputs)[-1], crc_len)
 
-        # Split info + received parity
-        x_info = inputs[..., :-crc_len]
-        parity_rx = inputs[..., -crc_len:]
+        tf.debugging.assert_greater(
+            tf.shape(inputs)[-1],
+            crc_len,
+            message=(
+                "CRC word must include information "
+                "and parity bits."
+            ),
+        )
 
-        # Compute parity from info bits only
-        x_crc = self._encoder(x_info)
-        parity_hat = x_crc[..., -crc_len:]
+        # Separate information and received parity.
+        information = inputs[..., :-crc_len]
+        received_parity = inputs[..., -crc_len:]
 
-        # Compare (bitwise): valid iff all parity bits match
-        # Use int_mod_2 on (parity_hat + parity_rx) for XOR in {0,1}
-        diff = tf.cast(parity_hat, tf.int64) + tf.cast(parity_rx, tf.int64)
-        diff = int_mod_2(diff)  # XOR for {0,1}
-        crc_valid = tf.reduce_all(tf.equal(diff, 0), axis=-1, keepdims=True)
+        # Recalculate expected parity.
+        expected_parity = self._encoder(
+            information
+        )[..., -crc_len:]
 
-        return tf.cast(x_info, self.dtype), crc_valid
+        # Valid when all received parity bits match.
+        valid = tf.reduce_all(
+            tf.equal(
+                tf.cast(
+                    received_parity,
+                    expected_parity.dtype,
+                ),
+                expected_parity,
+            ),
+            axis=-1,
+            keepdims=True,
+        )
+
+        return (
+            tf.cast(information, self.compute_dtype),
+            valid,
+        )
+
+if __name__ == "__main__":
+    encoder = CRCEncoder("CRC16")
+    decoder = CRCDecoder(encoder)
+
+    # Two information words, K=8.
+    bits = tf.constant(
+        [
+            [1, 0, 1, 1, 0, 0, 1, 0],
+            [0, 1, 0, 1, 1, 1, 0, 1],
+        ],
+        dtype=tf.float32,
+    )
+
+    encoded = encoder(bits)
+
+    decoded, valid = decoder(encoded)
+
+    print("Encoded shape:", encoded.shape)
+    print("Decoded bits:", decoded.numpy())
+    print("CRC valid:", valid.numpy())

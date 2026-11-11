@@ -1,0 +1,77 @@
+Native AFF3CT engine: OK
+
+============================================================
+ECE HPC - POLAR SRAM-PUF MONTE CARLO
+============================================================
+Job ID:             32141
+Job name:           SCL_L2_SYN
+Decoder case:       SCL_L2
+Enrollment scheme:  syndrome
+Node:               ecenod301
+Start time:         Tue Nov 10 10:51:55 PM HKT 2026
+Partition:          cpu-share
+Account:            eewhmow
+Allocated CPUs:     16
+Visible CPUs:       1
+CPU affinity:       0-15
+Python:             /home/hnksm/.conda/envs/puf_aff3ct/bin/python
+Conda environment:  puf_aff3ct
+Results:            /home/hnksm/puf_polar_project/results/ece/job_32141_SCL_L2_syndrome
+============================================================
+
+======================================================================
+Starting AFF3CT polar SRAM-PUF Monte Carlo
+======================================================================
+Decoder:      ('SCL',)
+List sizes:   (2,)
+Enrollment:   ('syndrome',)
+N:            1024
+K:            128
+Construction: BSC
+BSC p values: (0.19, 0.2, 0.22, 0.24, 0.26, 0.28, 0.3, 0.32)
+Threads:      16
+Seed:         2026
+Output:       /home/hnksm/puf_polar_project/results/ece/job_32141_SCL_L2_syndrome
+======================================================================
+====================================================================================================
+AFF3CT POLAR SRAM-PUF MONTE CARLO
+====================================================================================================
+N=1024, K=128
+Construction: BSC
+Enrollment schemes: ('syndrome',)
+Decoder configurations: [('SCL', 2)]
+DSCF: T=10, alpha=0.3367
+Checker: hash
+Threads: 16
+Scrambling: True
+PUF P(X=1): 0.5
+Seed: 2026
+Complexity: actual SC passes for SC/DSCF; nominal L for SCL.
+====================================================================================================
+
+====================================================================================================
+ENROLLMENT: SYNDROME
+====================================================================================================
+Helper bits: 896
+Secret bits: 128
+Output prefix: BSC_N1024_K128_BSC_hash128_SYNDROME
+====================================================================================================
+[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 0.00000e+00 | FRMs:          0 | ERRs:        0 | COM: 0.00000e+00 | FRMs/s: 0.00000e+00[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 6.99276e-05 | FRMs:      28601 | ERRs:        2 | COM: 2.00000e+00 | FRMs/s: 5.71648e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 6.34508e-05 | FRMs:      63041 | ERRs:        4 | COM: 2.00000e+00 | FRMs/s: 6.30131e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 6.07466e-05 | FRMs:      98771 | ERRs:        6 | COM: 2.00000e+00 | FRMs/s: 6.58229e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 5.28123e-05 | FRMs:     132545 | ERRs:        7 | COM: 2.00000e+00 | FRMs/s: 6.62504e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 5.95174e-05 | FRMs:     168018 | ERRs:       10 | COM: 2.00000e+00 | FRMs/s: 6.71865e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 5.96253e-05 | FRMs:     201257 | ERRs:       12 | COM: 2.00000e+00 | FRMs/s: 6.70658e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 5.48901e-05 | FRMs:     236837 | ERRs:       13 | COM: 2.00000e+00 | FRMs/s: 6.76484e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.82030e-05 | FRMs:     269693 | ERRs:       13 | COM: 2.00000e+00 | FRMs/s: 6.74045e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 5.23953e-05 | FRMs:     305371 | ERRs:       16 | COM: 2.00000e+00 | FRMs/s: 6.78417e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 5.01887e-05 | FRMs:     338722 | ERRs:       17 | COM: 2.00000e+00 | FRMs/s: 6.77263e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 5.34192e-05 | FRMs:     374397 | ERRs:       20 | COM: 2.00000e+00 | FRMs/s: 6.80543e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 5.37307e-05 | FRMs:     409449 | ERRs:       22 | COM: 2.00000e+00 | FRMs/s: 6.82238e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 5.18796e-05 | FRMs:     443334 | ERRs:       23 | COM: 2.00000e+00 | FRMs/s: 6.81877e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.80139e-05 | FRMs:     479028 | ERRs:       23 | COM: 2.00000e+00 | FRMs/s: 6.84152e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.68582e-05 | FRMs:     512184 | ERRs:       24 | COM: 2.00000e+00 | FRMs/s: 6.82740e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.56203e-05 | FRMs:     548002 | ERRs:       25 | COM: 2.00000e+00 | FRMs/s: 6.84830e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.56397e-05 | FRMs:     569679 | ERRs:       26 | COM: 2.00000e+00 | FRMs/s: 6.70044e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.46003e-05 | FRMs:     605377 | ERRs:       27 | COM: 2.00000e+00 | FRMs/s: 6.72475e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.63169e-05 | FRMs:     626121 | ERRs:       29 | COM: 2.00000e+00 | FRMs/s: 6.58913e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.38160e-05 | FRMs:     661858 | ERRs:       29 | COM: 2.00000e+00 | FRMs/s: 6.61696e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.39239e-05 | FRMs:     683000 | ERRs:       30 | COM: 2.00000e+00 | FRMs/s: 6.50319e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.40211e-05 | FRMs:     704208 | ERRs:       31 | COM: 2.00000e+00 | FRMs/s: 6.40035e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.32441e-05 | FRMs:     739985 | ERRs:       32 | COM: 2.00000e+00 | FRMs/s: 6.43310e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.46258e-05 | FRMs:     761891 | ERRs:       34 | COM: 2.00000e+00 | FRMs/s: 6.34756e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.51309e-05 | FRMs:     797680 | ERRs:       36 | COM: 2.00000e+00 | FRMs/s: 6.37992e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.40014e-05 | FRMs:     818156 | ERRs:       36 | COM: 2.00000e+00 | FRMs/s: 6.29201e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.64501e-05 | FRMs:     839610 | ERRs:       39 | COM: 2.00000e+00 | FRMs/s: 6.21786e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.69028e-05 | FRMs:     874148 | ERRs:       41 | COM: 2.00000e+00 | FRMs/s: 6.16430e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.72607e-05 | FRMs:     909846 | ERRs:       43 | COM: 2.00000e+00 | FRMs/s: 6.19747e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.61932e-05 | FRMs:     930872 | ERRs:       43 | COM: 2.00000e+00 | FRMs/s: 6.12383e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.65511e-05 | FRMs:     966680 | ERRs:       45 | COM: 2.00000e+00 | FRMs/s: 6.15684e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.65346e-05 | FRMs:     988512 | ERRs:       46 | COM: 2.00000e+00 | FRMs/s: 6.10154e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.75301e-05 | FRMs:    1009886 | ERRs:       48 | COM: 2.00000e+00 | FRMs/s: 6.04681e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.79138e-05 | FRMs:    1043541 | ERRs:       50 | COM: 2.00000e+00 | FRMs/s: 6.06666e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.69517e-05 | FRMs:    1064924 | ERRs:       50 | COM: 2.00000e+00 | FRMs/s: 6.01607e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.73081e-05 | FRMs:    1099178 | ERRs:       52 | COM: 2.00000e+00 | FRMs/s: 6.03897e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.72964e-05 | FRMs:    1120593 | ERRs:       53 | COM: 2.00000e+00 | FRMs/s: 5.99200e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.70603e-05 | FRMs:    1147464 | ERRs:       54 | COM: 2.00000e+00 | FRMs/s: 5.95442e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.75805e-05 | FRMs:    1176953 | ERRs:       56 | COM: 2.00000e+00 | FRMs/s: 5.92005e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.87197e-05 | FRMs:    1211010 | ERRs:       59 | COM: 2.00000e+00 | FRMs/s: 5.94190e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.82932e-05 | FRMs:    1242410 | ERRs:       60 | COM: 2.00000e+00 | FRMs/s: 5.94997e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.74644e-05 | FRMs:    1264106 | ERRs:       60 | COM: 2.00000e+00 | FRMs/s: 5.91228e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.77496e-05 | FRMs:    1298440 | ERRs:       62 | COM: 2.00000e+00 | FRMs/s: 5.93407e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.84736e-05 | FRMs:    1320305 | ERRs:       64 | COM: 2.00000e+00 | FRMs/s: 5.89918e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.84395e-05 | FRMs:    1341880 | ERRs:       65 | COM: 2.00000e+00 | FRMs/s: 5.86454e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.94738e-05 | FRMs:    1374466 | ERRs:       68 | COM: 2.00000e+00 | FRMs/s: 5.84114e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.89252e-05 | FRMs:    1410316 | ERRs:       69 | COM: 2.00000e+00 | FRMs/s: 5.86877e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 5.02741e-05 | FRMs:    1432149 | ERRs:       72 | COM: 2.00000e+00 | FRMs/s: 5.83813e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.91102e-05 | FRMs:    1466091 | ERRs:       72 | COM: 2.00000e+00 | FRMs/s: 5.85710e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.84067e-05 | FRMs:    1487398 | ERRs:       72 | COM: 2.00000e+00 | FRMs/s: 5.82583e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.74459e-05 | FRMs:    1517518 | ERRs:       72 | COM: 2.00000e+00 | FRMs/s: 5.79852e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.89261e-05 | FRMs:    1553363 | ERRs:       76 | COM: 2.00000e+00 | FRMs/s: 5.82419e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.82743e-05 | FRMs:    1574336 | ERRs:       76 | COM: 2.00000e+00 | FRMs/s: 5.78996e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.90659e-05 | FRMs:    1610078 | ERRs:       79 | COM: 2.00000e+00 | FRMs/s: 5.81447e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.90210e-05 | FRMs:    1631954 | ERRs:       80 | COM: 2.00000e+00 | FRMs/s: 5.78892e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.96104e-05 | FRMs:    1652880 | ERRs:       82 | COM: 2.00000e+00 | FRMs/s: 5.76095e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.97491e-05 | FRMs:    1688474 | ERRs:       84 | COM: 2.00000e+00 | FRMs/s: 5.78419e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.91293e-05 | FRMs:    1709773 | ERRs:       84 | COM: 2.00000e+00 | FRMs/s: 5.75850e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.98633e-05 | FRMs:    1744771 | ERRs:       87 | COM: 2.00000e+00 | FRMs/s: 5.77904e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.98558e-05 | FRMs:    1765092 | ERRs:       88 | COM: 2.00000e+00 | FRMs/s: 5.75108e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 5.07830e-05 | FRMs:    1791939 | ERRs:       91 | COM: 2.00000e+00 | FRMs/s: 5.73222e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 5.03661e-05 | FRMs:    1826625 | ERRs:       92 | COM: 2.00000e+00 | FRMs/s: 5.75118e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.97755e-05 | FRMs:    1848299 | ERRs:       92 | COM: 2.00000e+00 | FRMs/s: 5.72920e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 5.04664e-05 | FRMs:    1882441 | ERRs:       95 | COM: 2.00000e+00 | FRMs/s: 5.74596e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 4.99024e-05 | FRMs:    1903715 | ERRs:       95 | COM: 2.00000e+00 | FRMs/s: 5.72352e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 5.06753e-05 | FRMs:    1933882 | ERRs:       98 | COM: 2.00000e+00 | FRMs/s: 5.70454e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 5.04232e-05 | FRMs:    1963382 | ERRs:       99 | COM: 2.00000e+00 | FRMs/s: 5.70241e+04[2KDEC: SCL(L=2)   | P: 0.190 | BLER: 5.06328e-05 | FRMs:    1975004 | ERRs:      100 | COM: 2.00000e+00 | FRMs/s: 5.69447e+04
+[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 0.00000e+00 | FRMs:          0 | ERRs:        0 | COM: 0.00000e+00 | FRMs/s: 0.00000e+00[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 2.93229e-04 | FRMs:      34103 | ERRs:       10 | COM: 2.00000e+00 | FRMs/s: 6.81793e+04[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 2.75044e-04 | FRMs:      65444 | ERRs:       18 | COM: 2.00000e+00 | FRMs/s: 6.54178e+04[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 2.91328e-04 | FRMs:      85814 | ERRs:       25 | COM: 2.00000e+00 | FRMs/s: 5.71867e+04[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 2.84343e-04 | FRMs:     119574 | ERRs:       34 | COM: 2.00000e+00 | FRMs/s: 5.97636e+04[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 3.06248e-04 | FRMs:     140409 | ERRs:       43 | COM: 2.00000e+00 | FRMs/s: 5.61417e+04[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 3.10291e-04 | FRMs:     161139 | ERRs:       50 | COM: 2.00000e+00 | FRMs/s: 5.36921e+04[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 3.37168e-04 | FRMs:     195748 | ERRs:       66 | COM: 2.00000e+00 | FRMs/s: 5.59063e+04[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 3.29295e-04 | FRMs:     221686 | ERRs:       73 | COM: 2.00000e+00 | FRMs/s: 5.52885e+04[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 3.45981e-04 | FRMs:     251459 | ERRs:       87 | COM: 2.00000e+00 | FRMs/s: 5.57581e+04[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 3.34350e-04 | FRMs:     278152 | ERRs:       93 | COM: 2.00000e+00 | FRMs/s: 5.45416e+04[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 3.36401e-04 | FRMs:     297264 | ERRs:      100 | COM: 2.00000e+00 | FRMs/s: 5.52785e+04
+[2KDEC: SCL(L=2)   | P: 0.220 | BLER: 0.00000e+00 | FRMs:          0 | ERRs:        0 | COM: 0.00000e+00 | FRMs/s: 0.00000e+00[2KDEC: SCL(L=2)   | P: 0.220 | BLER: 4.63521e-03 | FRMs:      21574 | ERRs:      100 | COM: 2.00000e+00 | FRMs/s: 6.71520e+04
+[2KDEC: SCL(L=2)   | P: 0.240 | BLER: 0.00000e+00 | FRMs:          0 | ERRs:        0 | COM: 0.00000e+00 | FRMs/s: 0.00000e+00[2KDEC: SCL(L=2)   | P: 0.240 | BLER: 4.86538e-02 | FRMs:       2117 | ERRs:      103 | COM: 2.00000e+00 | FRMs/s: 9.05320e+03
+[2KDEC: SCL(L=2)   | P: 0.260 | BLER: 0.00000e+00 | FRMs:          0 | ERRs:        0 | COM: 0.00000e+00 | FRMs/s: 0.00000e+00[2KDEC: SCL(L=2)   | P: 0.260 | BLER: 2.51834e-01 | FRMs:        409 | ERRs:      103 | COM: 2.00000e+00 | FRMs/s: 3.54784e+04
+[2KDEC: SCL(L=2)   | P: 0.280 | BLER: 0.00000e+00 | FRMs:          0 | ERRs:        0 | COM: 0.00000e+00 | FRMs/s: 0.00000e+00[2KDEC: SCL(L=2)   | P: 0.280 | BLER: 6.11429e-01 | FRMs:        175 | ERRs:      107 | COM: 2.00000e+00 | FRMs/s: 2.13308e+04
+[2KDEC: SCL(L=2)   | P: 0.300 | BLER: 0.00000e+00 | FRMs:          0 | ERRs:        0 | COM: 0.00000e+00 | FRMs/s: 0.00000e+00[2KDEC: SCL(L=2)   | P: 0.300 | BLER: 9.27419e-01 | FRMs:        124 | ERRs:      115 | COM: 2.00000e+00 | FRMs/s: 1.70511e+04
+[2KDEC: SCL(L=2)   | P: 0.320 | BLER: 0.00000e+00 | FRMs:          0 | ERRs:        0 | COM: 0.00000e+00 | FRMs/s: 0.00000e+00[2KDEC: SCL(L=2)   | P: 0.320 | BLER: 1.00000e+00 | FRMs:        114 | ERRs:      114 | COM: 2.00000e+00 | FRMs/s: 9.32366e+03
+
+============================================================
+ECE HPC SIMULATION FINISHED
+============================================================
+Job ID:       32141
+Decoder:      SCL_L2
+Enrollment:   syndrome
+End time:     Tue Nov 10 10:53:30 PM HKT 2026
+Exit code:    0
+Results:      /home/hnksm/puf_polar_project/results/ece/job_32141_SCL_L2_syndrome
+============================================================

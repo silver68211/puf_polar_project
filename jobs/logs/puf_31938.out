@@ -1,0 +1,50 @@
+Checking Python environment...
+/home/hnksm/.conda/envs/puf_aff3ct/bin/python
+Python 3.10.22
+AFF3CT native Monte Carlo: OK
+
+============================================================
+ECE HPC - SRAM-PUF POLAR MONTE CARLO
+============================================================
+Job ID:          31938
+Job name:        puf-dscf
+Decoder case:    DSCF
+Node:            ecenod301
+Start time:      Mon Nov  9 04:18:22 PM HKT 2026
+Partition:       cpu-share
+Account:         eewhmow
+Allocated CPUs:  32
+Visible CPUs:    1
+CPU affinity:    0-31
+Python:          /home/hnksm/.conda/envs/puf_aff3ct/bin/python
+Conda env:       puf_aff3ct
+Project:         /home/hnksm/puf_polar_project
+Results:         /home/hnksm/puf_polar_project/results/ece/job_31938_DSCF
+============================================================
+
+======================================================================
+Starting AFF3CT SRAM-PUF Monte Carlo
+======================================================================
+Decoder:    ('DSCF',)
+SCL sizes:  None
+N:          1024
+K:          128
+BSC p:      (0.18, 0.2, 0.22, 0.24, 0.26, 0.28, 0.3)
+Threads:    32
+Results:    /home/hnksm/puf_polar_project/results/ece/job_31938_DSCF
+======================================================================
+========================================================================================================================
+AFF3CT POLAR SRAM-PUF MONTE CARLO
+========================================================================================================================
+N=1024, K=128
+Construction: OURS
+Decoder: [('DSCF', 1)]
+DSCF: T=10, alpha=0.3367
+Checker: hash
+Threads: 32
+Scrambling: True
+PUF P(X=1): 0.5
+Seed: 6501931568776203782
+Normalized complexity = total SC passes / decoded frames
+========================================================================================================================
+[2KDEC: DSCF       | P: 0.180 | BLER: 0.00000e+00 | FRMs:          0 | ERRs:        0 | COM: 0.00000e+00 | FRMs/s: 0.00000e+00[2KDEC: DSCF       | P: 0.180 | BLER: 4.30528e-06 | FRMs:     232273 | ERRs:        1 | COM: 1.00022e+00 | FRMs/s: 4.64163e+05[2KDEC: DSCF       | P: 0.180 | BLER: 1.99636e-06 | FRMs:     500912 | ERRs:        1 | COM: 1.00022e+00 | FRMs/s: 5.00651e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.58854e-06 | FRMs:     772637 | ERRs:        2 | COM: 1.00021e+00 | FRMs/s: 5.14882e+05[2KDEC: DSCF       | P: 0.180 | BLER: 3.82789e-06 | FRMs:    1044961 | ERRs:        4 | COM: 1.00022e+00 | FRMs/s: 5.22296e+05[2KDEC: DSCF       | P: 0.180 | BLER: 3.06220e-06 | FRMs:    1306252 | ERRs:        4 | COM: 1.00023e+00 | FRMs/s: 5.22332e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.53312e-06 | FRMs:    1579083 | ERRs:        4 | COM: 1.00023e+00 | FRMs/s: 5.26202e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.71816e-06 | FRMs:    1839478 | ERRs:        5 | COM: 1.00023e+00 | FRMs/s: 5.25415e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.36717e-06 | FRMs:    2112225 | ERRs:        5 | COM: 1.00023e+00 | FRMs/s: 5.27912e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.10832e-06 | FRMs:    2371555 | ERRs:        5 | COM: 1.00024e+00 | FRMs/s: 5.26874e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.26862e-06 | FRMs:    2644782 | ERRs:        6 | COM: 1.00024e+00 | FRMs/s: 5.28819e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.39914e-06 | FRMs:    2917707 | ERRs:        7 | COM: 1.00024e+00 | FRMs/s: 5.30358e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.19420e-06 | FRMs:    3190229 | ERRs:        7 | COM: 1.00023e+00 | FRMs/s: 5.31573e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.31011e-06 | FRMs:    3463036 | ERRs:        8 | COM: 1.00024e+00 | FRMs/s: 5.32645e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.41780e-06 | FRMs:    3722394 | ERRs:        9 | COM: 1.00024e+00 | FRMs/s: 5.31643e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.25252e-06 | FRMs:    3995521 | ERRs:        9 | COM: 1.00025e+00 | FRMs/s: 5.32610e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.11506e-06 | FRMs:    4255197 | ERRs:        9 | COM: 1.00025e+00 | FRMs/s: 5.31775e+05[2KDEC: DSCF       | P: 0.180 | BLER: 1.98759e-06 | FRMs:    4528107 | ERRs:        9 | COM: 1.00025e+00 | FRMs/s: 5.32595e+05[2KDEC: DSCF       | P: 0.180 | BLER: 1.88000e-06 | FRMs:    4787240 | ERRs:        9 | COM: 1.00025e+00 | FRMs/s: 5.31794e+05[2KDEC: DSCF       | P: 0.180 | BLER: 1.77864e-06 | FRMs:    5060058 | ERRs:        9 | COM: 1.00024e+00 | FRMs/s: 5.32517e+05[2KDEC: DSCF       | P: 0.180 | BLER: 1.87509e-06 | FRMs:    5333086 | ERRs:       10 | COM: 1.00024e+00 | FRMs/s: 5.33189e+05[2KDEC: DSCF       | P: 0.180 | BLER: 1.96213e-06 | FRMs:    5606141 | ERRs:       11 | COM: 1.00025e+00 | FRMs/s: 5.33799e+05[2KDEC: DSCF       | P: 0.180 | BLER: 1.87094e-06 | FRMs:    5879392 | ERRs:       11 | COM: 1.00025e+00 | FRMs/s: 5.34372e+05[2KDEC: DSCF       | P: 0.180 | BLER: 1.78791e-06 | FRMs:    6152451 | ERRs:       11 | COM: 1.00025e+00 | FRMs/s: 5.34878e+05[2KDEC: DSCF       | P: 0.180 | BLER: 1.71226e-06 | FRMs:    6424273 | ERRs:       11 | COM: 1.00025e+00 | FRMs/s: 5.35238e+05[2KDEC: DSCF       | P: 0.180 | BLER: 1.94536e-06 | FRMs:    6682567 | ERRs:       13 | COM: 1.00025e+00 | FRMs/s: 5.34486e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.15670e-06 | FRMs:    6955064 | ERRs:       15 | COM: 1.00025e+00 | FRMs/s: 5.34886e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.07919e-06 | FRMs:    7214355 | ERRs:       15 | COM: 1.00025e+00 | FRMs/s: 5.34278e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.13698e-06 | FRMs:    7487186 | ERRs:       16 | COM: 1.00026e+00 | FRMs/s: 5.34681e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.32405e-06 | FRMs:    7745085 | ERRs:       18 | COM: 1.00026e+00 | FRMs/s: 5.34027e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.36989e-06 | FRMs:    8017260 | ERRs:       19 | COM: 1.00026e+00 | FRMs/s: 5.34367e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.44494e-06 | FRMs:    8180158 | ERRs:       20 | COM: 1.00026e+00 | FRMs/s: 5.27637e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.51511e-06 | FRMs:    8349538 | ERRs:       21 | COM: 1.00026e+00 | FRMs/s: 5.21480e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.68423e-06 | FRMs:    8568556 | ERRs:       23 | COM: 1.00026e+00 | FRMs/s: 5.15519e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.71456e-06 | FRMs:    8841219 | ERRs:       24 | COM: 1.00026e+00 | FRMs/s: 5.16387e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.66757e-06 | FRMs:    8996951 | ERRs:       24 | COM: 1.00027e+00 | FRMs/s: 5.10570e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.69737e-06 | FRMs:    9268273 | ERRs:       25 | COM: 1.00026e+00 | FRMs/s: 5.11452e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.65193e-06 | FRMs:    9427102 | ERRs:       25 | COM: 1.00026e+00 | FRMs/s: 5.06246e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.57937e-06 | FRMs:    9692283 | ERRs:       25 | COM: 1.00026e+00 | FRMs/s: 5.06874e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.53731e-06 | FRMs:    9852967 | ERRs:       25 | COM: 1.00027e+00 | FRMs/s: 5.02145e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.47365e-06 | FRMs:   10106517 | ERRs:       25 | COM: 1.00026e+00 | FRMs/s: 4.98319e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.60137e-06 | FRMs:   10379146 | ERRs:       27 | COM: 1.00027e+00 | FRMs/s: 4.99446e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.65364e-06 | FRMs:   10551543 | ERRs:       28 | COM: 1.00027e+00 | FRMs/s: 4.95350e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.58664e-06 | FRMs:   10824849 | ERRs:       28 | COM: 1.00027e+00 | FRMs/s: 4.96523e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.54737e-06 | FRMs:   10991744 | ERRs:       28 | COM: 1.00027e+00 | FRMs/s: 4.92873e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.51016e-06 | FRMs:   11154676 | ERRs:       28 | COM: 1.00027e+00 | FRMs/s: 4.89209e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.64706e-06 | FRMs:   11333313 | ERRs:       30 | COM: 1.00027e+00 | FRMs/s: 4.85758e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.58483e-06 | FRMs:   11606176 | ERRs:       30 | COM: 1.00027e+00 | FRMs/s: 4.87014e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.63172e-06 | FRMs:   11779381 | ERRs:       31 | COM: 1.00027e+00 | FRMs/s: 4.83730e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.57210e-06 | FRMs:   12052386 | ERRs:       31 | COM: 1.00027e+00 | FRMs/s: 4.84981e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.53781e-06 | FRMs:   12215234 | ERRs:       31 | COM: 1.00027e+00 | FRMs/s: 4.81838e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.50547e-06 | FRMs:   12372935 | ERRs:       31 | COM: 1.00027e+00 | FRMs/s: 4.78618e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.45135e-06 | FRMs:   12646116 | ERRs:       31 | COM: 1.00027e+00 | FRMs/s: 4.79902e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.49744e-06 | FRMs:   12813123 | ERRs:       32 | COM: 1.00027e+00 | FRMs/s: 4.77183e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.46128e-06 | FRMs:   13001377 | ERRs:       32 | COM: 1.00027e+00 | FRMs/s: 4.74655e+05[2KDEC: DSCF       | P: 0.180 | BLER: 2.48869e-06 | FRMs:   13259984 | ERRs:       33 | COM: 1.00027e+00 | FRMs/s: 4.75416e+05

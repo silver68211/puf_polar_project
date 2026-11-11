@@ -1,0 +1,6 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794203730.491573  576585 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+I0000 00:00:1794203730.492035  576585 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794203793.494968  576585 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+I0000 00:00:1794203793.496729  576585 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.

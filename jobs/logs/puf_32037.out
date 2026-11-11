@@ -1,0 +1,45 @@
+Checking Python environment...
+/home/hnksm/.conda/envs/puf_aff3ct/bin/python
+Python 3.10.22
+AFF3CT native Monte Carlo: OK
+
+============================================================
+ECE HPC - SRAM-PUF POLAR MONTE CARLO
+============================================================
+Job ID:          32037
+Job name:        SC
+Decoder case:    SC
+Node:            ecenod304
+Start time:      Tue Nov 10 01:47:22 PM HKT 2026
+Partition:       cpu-share
+Account:         eewhmow
+Allocated CPUs:  32
+Visible CPUs:    1
+CPU affinity:    0-31
+Python:          /home/hnksm/.conda/envs/puf_aff3ct/bin/python
+Conda env:       puf_aff3ct
+Project:         /home/hnksm/puf_polar_project
+Results:         /home/hnksm/puf_polar_project/results/ece/job_32037_SC
+============================================================
+
+======================================================================
+Starting AFF3CT SRAM-PUF Monte Carlo
+======================================================================
+Decoder:    ('SC',)
+SCL sizes:  None
+N:          1024
+K:          128
+BSC p:      (0.15, 0.16, 0.18, 0.2, 0.22, 0.24, 0.26, 0.28, 0.3)
+Threads:    32
+Results:    /home/hnksm/puf_polar_project/results/ece/job_32037_SC
+======================================================================
+
+============================================================
+ECE HPC SIMULATION FINISHED
+============================================================
+Job ID:       32037
+Decoder:      SC
+End time:     Tue Nov 10 01:49:15 PM HKT 2026
+Exit code:    1
+Results:      /home/hnksm/puf_polar_project/results/ece/job_32037_SC
+============================================================

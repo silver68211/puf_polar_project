@@ -1,0 +1,65 @@
+Checking Python environment...
+/home/hnksm/.conda/envs/puf_aff3ct/bin/python
+Python 3.10.22
+AFF3CT native Monte Carlo: OK
+
+============================================================
+ECE HPC - SRAM-PUF POLAR MONTE CARLO
+============================================================
+Job ID:          31919
+Job name:        puf-scl2
+Decoder case:    SCL_L2
+Node:            ecenod301
+Start time:      Mon Nov  9 08:48:53 AM HKT 2026
+Partition:       cpu-share
+Account:         eewhmow
+Allocated CPUs:  32
+Visible CPUs:    1
+CPU affinity:    0-31
+Python:          /home/hnksm/.conda/envs/puf_aff3ct/bin/python
+Conda env:       puf_aff3ct
+Project:         /home/hnksm/puf_polar_project
+Results:         /home/hnksm/puf_polar_project/results/ece/job_31919_SCL_L2
+============================================================
+
+======================================================================
+Starting AFF3CT SRAM-PUF Monte Carlo
+======================================================================
+Decoder:    ('SCL',)
+SCL sizes:  (2,)
+N:          1024
+K:          128
+BSC p:      (0.2, 0.22, 0.24, 0.26, 0.28, 0.3)
+Threads:    32
+Results:    /home/hnksm/puf_polar_project/results/ece/job_31919_SCL_L2
+======================================================================
+========================================================================================================================
+AFF3CT POLAR SRAM-PUF MONTE CARLO
+========================================================================================================================
+N=1024, K=128
+Construction: 5G
+Decoder: [('SCL', 2)]
+DSCF: T=10, alpha=0.3367
+Checker: hash
+Threads: 32
+Scrambling: True
+PUF P(X=1): 0.5
+Seed: 1324259657285612637
+Normalized complexity = total SC passes / decoded frames
+========================================================================================================================
+[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 0.00000e+00 | FRMs:          0 | ERRs:        0 | COM: 0.00000e+00 | FRMs/s: 0.00000e+00[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 1.30467e-04 | FRMs:      61318 | ERRs:        8 | COM: 2.00000e+00 | FRMs/s: 1.22560e+05[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 1.06597e-04 | FRMs:     140717 | ERRs:       15 | COM: 2.00000e+00 | FRMs/s: 1.40659e+05[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 1.13361e-04 | FRMs:     220535 | ERRs:       25 | COM: 2.00000e+00 | FRMs/s: 1.46974e+05[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 1.09935e-04 | FRMs:     300178 | ERRs:       33 | COM: 2.00000e+00 | FRMs/s: 1.50046e+05[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 1.06815e-04 | FRMs:     374480 | ERRs:       40 | COM: 2.00000e+00 | FRMs/s: 1.49753e+05[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 1.05994e-04 | FRMs:     452856 | ERRs:       48 | COM: 2.00000e+00 | FRMs/s: 1.50915e+05[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 1.09827e-04 | FRMs:     528101 | ERRs:       58 | COM: 2.00000e+00 | FRMs/s: 1.50850e+05[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 9.87549e-05 | FRMs:     607565 | ERRs:       60 | COM: 2.00000e+00 | FRMs/s: 1.51856e+05[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 9.76834e-05 | FRMs:     685889 | ERRs:       67 | COM: 2.00000e+00 | FRMs/s: 1.52385e+05[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 9.58914e-05 | FRMs:     761278 | ERRs:       73 | COM: 2.00000e+00 | FRMs/s: 1.52222e+05[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 1.04630e-04 | FRMs:     841055 | ERRs:       88 | COM: 2.00000e+00 | FRMs/s: 1.52886e+05[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 1.04818e-04 | FRMs:     915873 | ERRs:       96 | COM: 2.00000e+00 | FRMs/s: 1.52613e+05[2KDEC: SCL(L=2)   | P: 0.200 | BLER: 1.02463e-04 | FRMs:     975962 | ERRs:      100 | COM: 2.00000e+00 | FRMs/s: 1.53010e+05
+[2KDEC: SCL(L=2)   | P: 0.220 | BLER: 0.00000e+00 | FRMs:          0 | ERRs:        0 | COM: 0.00000e+00 | FRMs/s: 0.00000e+00[2KDEC: SCL(L=2)   | P: 0.220 | BLER: 2.58371e-03 | FRMs:      38704 | ERRs:      100 | COM: 2.00000e+00 | FRMs/s: 1.54167e+05
+[2KDEC: SCL(L=2)   | P: 0.240 | BLER: 0.00000e+00 | FRMs:          0 | ERRs:        0 | COM: 0.00000e+00 | FRMs/s: 0.00000e+00[2KDEC: SCL(L=2)   | P: 0.240 | BLER: 3.07692e-02 | FRMs:       3250 | ERRs:      100 | COM: 2.00000e+00 | FRMs/s: 1.20606e+05
+[2KDEC: SCL(L=2)   | P: 0.260 | BLER: 0.00000e+00 | FRMs:          0 | ERRs:        0 | COM: 0.00000e+00 | FRMs/s: 0.00000e+00[2KDEC: SCL(L=2)   | P: 0.260 | BLER: 2.19616e-01 | FRMs:        469 | ERRs:      103 | COM: 2.00000e+00 | FRMs/s: 5.30716e+04
+[2KDEC: SCL(L=2)   | P: 0.280 | BLER: 0.00000e+00 | FRMs:          0 | ERRs:        0 | COM: 0.00000e+00 | FRMs/s: 0.00000e+00[2KDEC: SCL(L=2)   | P: 0.280 | BLER: 5.86735e-01 | FRMs:        196 | ERRs:      115 | COM: 2.00000e+00 | FRMs/s: 2.77847e+04
+[2KDEC: SCL(L=2)   | P: 0.300 | BLER: 0.00000e+00 | FRMs:          0 | ERRs:        0 | COM: 0.00000e+00 | FRMs/s: 0.00000e+00[2KDEC: SCL(L=2)   | P: 0.300 | BLER: 9.13669e-01 | FRMs:        139 | ERRs:      127 | COM: 2.00000e+00 | FRMs/s: 2.07104e+04
+
+============================================================
+ECE HPC SIMULATION FINISHED
+============================================================
+Job ID:       31919
+Decoder:      SCL_L2
+End time:     Mon Nov  9 08:49:31 AM HKT 2026
+Exit code:    0
+Results:      /home/hnksm/puf_polar_project/results/ece/job_31919_SCL_L2
+============================================================

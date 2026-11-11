@@ -74,7 +74,7 @@ CMakeUserPresets.json
 # 4. Simulation results and generated figures
 # ------------------------------------------------------------
 
-results/
+# results/
 outputs/
 tests/
 simulation_outputs/

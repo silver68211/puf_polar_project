@@ -1,235 +1,264 @@
-import numpy as np
+
+"""Polar-code construction methods: GA, RM, RM-Polar, and Bhattacharyya."""
+
 from collections import Counter
-from typing import Tuple
+
+import numpy as np
 
 
-# -----------------------------
-# Gaussian Approximation (GA) construction
-# -----------------------------
+# ============================================================
+# 1. Gaussian Approximation (GA)
+# ============================================================
+
 class GA:
-    """
-    Gaussian Approximation (GA) construction for polar codes.
+    """Gaussian Approximation construction for polar codes."""
 
-    Parameters
-    ----------
-    snr_db : float
-        Design SNR in dB (typically Es/N0 or Eb/N0 depending on your convention).
-    n_log2 : int
-        Code length exponent, N = 2**n_log2.
-    rate : float
-        Code rate K/N.
-    """
-
-    def __init__(self, snr_db: float, n_log2: int = 7, rate: float = 0.5):
-        if not (0.0 < rate <= 1.0):
-            raise ValueError("rate must be in (0, 1].")
+    def __init__(
+        self,
+        snr_db: float,
+        n_log2: int = 7,
+        rate: float = 0.5,
+    ):
         if n_log2 < 1:
             raise ValueError("n_log2 must be >= 1.")
 
+        if not 0.0 < rate <= 1.0:
+            raise ValueError("rate must be in (0, 1].")
+
         self.n_log2 = int(n_log2)
-        self.N = 2**self.n_log2
+        self.N = 1 << self.n_log2
         self.K = int(round(rate * self.N))
         self.rate = float(rate)
 
-        # Design mean LLR for AWGN approximation commonly used in polar GA
-        # design_llr = 4 * R * 10^(snr/10)
-        self.design_llr = 4.0 * self.rate * (10.0 ** (snr_db / 10.0))
+        if self.K < 1:
+            raise ValueError("K must be positive.")
 
-        # Reliability sequence (smaller -> worse channel in your current convention)
-        init_mean = np.full(self.N, self.design_llr, dtype=np.float64)
-        self.sequence = self.gaussian_approx(init_mean)
+        # Initial mean LLR for the AWGN approximation.
+        self.design_llr = (
+            4.0 * self.rate * 10.0 ** (snr_db / 10.0)
+        )
 
-        # Sort by reliability (ascending)
-        order = np.argsort(self.sequence)
-        self.frozen_pos = order[: self.N - self.K]
-        self.info_pos = order[self.N - self.K :]
+        initial = np.full(
+            self.N,
+            self.design_llr,
+            dtype=np.float64,
+        )
 
-    # ---- phi approximation ----
+        self.sequence = self.gaussian_approx(initial)
+
+        # Smaller mean LLR means lower reliability.
+        order = np.argsort(self.sequence, kind="stable")
+
+        self.frozen_pos = np.sort(order[: self.N - self.K])
+        self.info_pos = np.sort(order[self.N - self.K :])
+
     @staticmethod
     def phi_new(x: np.ndarray) -> np.ndarray:
-        """
-        Vectorized phi approximation used in GA construction.
-        Uses two regimes (x < 10 and x >= 10).
-        """
+        """Approximation of the GA phi function."""
+
         x = np.asarray(x, dtype=np.float64)
         y = np.empty_like(x)
 
-        m = x < 10.0
-        # regime 1
-        y[m] = np.exp(-0.4527 * (x[m] ** 0.86) + 0.0218)
+        mask = x < 10.0
 
-        # regime 2 (asymptotic)
-        xm = x[~m]
-        # avoid division by zero
-        xm = np.maximum(xm, 1e-12)
-        y[~m] = np.sqrt(np.pi / xm) * (1.0 - 10.0 / (7.0 * xm)) * np.exp(-xm / 4.0)
+        y[mask] = np.exp(
+            -0.4527 * x[mask] ** 0.86 + 0.0218
+        )
 
-        # clip to (0,1] for numerical stability
+        xm = np.maximum(x[~mask], 1e-12)
+
+        y[~mask] = (
+            np.sqrt(np.pi / xm)
+            * (1.0 - 10.0 / (7.0 * xm))
+            * np.exp(-xm / 4.0)
+        )
+
         return np.clip(y, 1e-15, 1.0)
 
     @classmethod
     def phi_inv(
-        cls, y: np.ndarray, lo: float = 0.0, hi: float = 10_000.0, tol: float = 1e-2
+        cls,
+        y: np.ndarray,
+        lo: float = 0.0,
+        hi: float = 10_000.0,
+        tol: float = 1e-2,
     ) -> np.ndarray:
-        """
-        Vectorized inverse of phi_new via bisection.
+        """Numerical inverse of the phi approximation."""
 
-        Solves phi_new(x) = y for x >= 0.
-        """
-        y = np.asarray(y, dtype=np.float64)
-        y = np.clip(y, 1e-15, 1.0)
+        y = np.clip(
+            np.asarray(y, dtype=np.float64),
+            1e-15,
+            1.0,
+        )
 
-        a = np.full_like(y, lo, dtype=np.float64)
-        b = np.full_like(y, hi, dtype=np.float64)
+        a = np.full_like(y, lo)
+        b = np.full_like(y, hi)
 
-        # bisection loop (vectorized)
         while np.max(b - a) >= tol:
             c = 0.5 * (a + b)
-            fc = cls.phi_new(c) - y
-            fa = cls.phi_new(a) - y
 
-            # if sign change between a and c => root in [a,c], else in [c,b]
-            left = (fc * fa) < 0
+            fa = cls.phi_new(a) - y
+            fc = cls.phi_new(c) - y
+
+            left = (fa * fc) < 0
+
             b = np.where(left, c, b)
             a = np.where(left, a, c)
 
         return 0.5 * (a + b)
 
-    def gaussian_approx(self, init_mean: np.ndarray) -> np.ndarray:
-        """
-        Compute GA reliabilities (mean LLRs) for all synthetic channels.
+    def gaussian_approx(
+        self,
+        init_mean: np.ndarray,
+    ) -> np.ndarray:
+        """Compute synthetic-channel mean LLRs."""
 
-        Vectorized O(N log N) version.
-        """
-        m = np.asarray(init_mean, dtype=np.float64)
-        if m.shape != (self.N,):
-            raise ValueError(f"init_mean must have shape ({self.N},), got {m.shape}.")
+        cur = np.asarray(
+            init_mean,
+            dtype=np.float64,
+        ).copy()
 
-        # Stage-by-stage recursion, vectorized within each stage
-        cur = m.copy()
+        if cur.shape != (self.N,):
+            raise ValueError(
+                f"init_mean must have shape ({self.N},)."
+            )
+
         for stage in range(1, self.n_log2 + 1):
-            half = 2 ** (stage - 1)
-            size = 2**stage
+            half = 1 << (stage - 1)
+            size = 2 * half
 
-            # We only need previous stage values for indices 0..half-1
             prev = cur[:half]
 
-            # upper: phi^{-1}(1 - (1-phi(T))^2)
-            phiT = self.phi_new(prev)
-            upper = self.phi_inv(1.0 - (1.0 - phiT) ** 2)
+            phi = self.phi_new(prev)
 
-            # lower: 2T
+            # Less reliable synthetic channel.
+            upper = self.phi_inv(
+                1.0 - (1.0 - phi) ** 2
+            )
+
+            # More reliable synthetic channel.
             lower = 2.0 * prev
 
-            # interleave upper/lower into the next stage buffer
             nxt = np.empty(size, dtype=np.float64)
             nxt[0::2] = upper
             nxt[1::2] = lower
 
-            # write back into cur (only first "size" entries are meaningful at this stage)
             cur[:size] = nxt
 
-        return cur[: self.N]
+        return cur
 
 
-# -----------------------------
-# RM / RM-Polar design utilities
-# -----------------------------
+# ============================================================
+# 2. Reed-Muller (RM) construction
+# ============================================================
+
 def bin_rep(n: int) -> np.ndarray:
-    """
-    Binary representations for integers 0..2^n-1, shape (2^n, n).
-    """
+    """Binary representations of 0,...,2^n-1."""
+
     if n < 1:
         raise ValueError("n must be >= 1.")
-    x = np.arange(2**n, dtype=np.uint32)[:, None]
-    bits = (x >> np.arange(n, dtype=np.uint32)) & 1
-    return bits.astype(np.uint8)
+
+    indices = np.arange(
+        1 << n,
+        dtype=np.uint64,
+    )[:, None]
+
+    shifts = np.arange(n, dtype=np.uint64)
+
+    return ((indices >> shifts) & 1).astype(np.uint8)
 
 
 def RM_Design_Rule(N: int, K: int) -> np.ndarray:
-    """
-    Classical RM design: choose highest Hamming-weight rows.
-    (Requires r_gp defined elsewhere in your codebase; kept as-is.)
-    """
-    n = int(np.log2(N))
-    T = [2] * n
-    P = r_gp(T)  # <-- depends on your existing implementation
-    wt = P.sum(1)
-    return np.argsort(wt)[::-1][:K]
+    """Select K polar generator rows with largest Hamming weights."""
 
+    if N < 2 or (N & (N - 1)):
+        raise ValueError("N must be a power of two.")
+
+    if not 0 < K <= N:
+        raise ValueError("Require 0 < K <= N.")
+
+    n = N.bit_length() - 1
+
+    # Generator-row weights are 2^wt(i).
+    # Ranking by wt(i) gives the same ordering.
+    weights = bin_rep(n).sum(axis=1)
+
+    order = np.argsort(-weights.astype(np.int32), kind="stable")
+
+    return np.sort(order[:K].astype(np.int32))
+
+
+# ============================================================
+# 3. RM-Polar construction
+# ============================================================
 
 def RM_Polar_Design_Rule(
-    N: int, K: int, crc: int = 0, ebno_db: float = 3.0
-) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    RM-Polar selection rule (your variant): filter by RM order then pick best by Bhattacharyya-like metric.
+    N: int,
+    K: int,
+    crc: int = 0,
+    ebno_db: float = 3.0,
+) -> tuple[np.ndarray, np.ndarray]:
+    """RM filtering followed by GA-based reliability selection."""
 
-    Returns
-    -------
-    info_pos : np.ndarray
-        Selected information positions, shape (K+crc,)
-    zw : np.ndarray
-        Z-like metric over all N positions
-    """
-    n = int(np.log2(N))
-    rate = K / N
+    if N < 2 or (N & (N - 1)):
+        raise ValueError("N must be a power of two.")
 
-    ga = GA(ebno_db, n_log2=n, rate=rate)
-
-    # your original computations (kept), but vectorized and stabilized
-    sigma = 2.0 / ga.sequence
-    sigma = np.maximum(sigma, 1e-12)
-
-    zw = np.exp(-1.0 / (2.0 * sigma))
-
-    # Hamming weight of binary index (RM order filtering)
-    bits = bin_rep(n)
-    weight = bits.sum(axis=1)
-
-    wt_dict = Counter(weight)
-    # sort weights descending
-    swt = sorted(wt_dict.items(), key=lambda kv: kv[0], reverse=True)
-
-    rK = 0
-    lowest_wt = None
     target = K + crc
-    for wt_val, count in swt:
-        rK += count
-        lowest_wt = wt_val
-        if rK >= target:
+
+    if not (0 < K <= N and 0 < target <= N):
+        raise ValueError("Require 0 < K and 0 < K+crc <= N.")
+
+    n = N.bit_length() - 1
+
+    # GA reliability.
+    ga = GA(
+        snr_db=ebno_db,
+        n_log2=n,
+        rate=K / N,
+    )
+
+    # Z-like reliability metric.
+    # Equivalent to exp(-1/(2*sigma)), sigma=2/mean.
+    zw = np.exp(
+        -np.maximum(ga.sequence, 0.0) / 4.0
+    )
+
+    # Hamming weights of polar indices.
+    weights = bin_rep(n).sum(axis=1)
+
+    counts = Counter(weights)
+
+    # Determine the lowest permitted RM weight.
+    cumulative = 0
+    minimum_weight = 0
+
+    for weight in sorted(counts, reverse=True):
+        cumulative += counts[weight]
+
+        minimum_weight = weight
+
+        if cumulative >= target:
             break
 
-    remaining_idx = np.where(weight >= lowest_wt)[0]
-    remaining_zw = zw[remaining_idx]
+    # Eligible RM positions.
+    candidates = np.where(
+        weights >= minimum_weight
+    )[0]
 
-    # choose smallest zw (most reliable)
-    pick = np.argsort(remaining_zw)[:target]
-    info_pos = remaining_idx[pick]
+    # Select the most reliable eligible positions.
+    order = np.argsort(
+        zw[candidates],
+        kind="stable",
+    )
 
-    return info_pos.astype(np.int32), zw.astype(np.float64)
+    info = candidates[order[:target]]
+
+    return np.sort(info.astype(np.int32)), zw
 
 
-# -----------------------------
-# Demo
-# -----------------------------
-if __name__ == "__main__":
-    N = 1024
-    K = 512
-    n = int(np.log2(N))
-
-    design_snr_db = 2.0
-    rate = K / N
-
-    ga = GA(design_snr_db, n_log2=n, rate=rate)
-    sequence = ga.sequence
-    order = np.argsort(sequence)
-
-    frozen = order[: N - K]
-    info_pos = np.setdiff1d(np.arange(N), frozen)
-
-    print("info_pos:\n", info_pos)
-    print("frozen:\n", frozen)
-
+# ============================================================
+# 4. Bhattacharyya construction
+# ============================================================
 
 def bhattacharyya_design(
     n: int,
@@ -240,41 +269,113 @@ def bhattacharyya_design(
     design_snr_db: float = 0.0,
     design_erasure: float = 0.15,
 ):
-    """Polar index construction via BEC recursion / BMS Bhattacharyya upper bound.
+    """
+    Construct polar codes using Bhattacharyya recursion.
 
-    BEC: exact. BSC/AWGN: Z^- <= 2Z-Z^2 and Z^+=Z^2 (conservative approximation).
+    BEC:
+        Exact recursion.
+
+    BSC / AWGN:
+        Conservative upper-bound recursion.
+
+    Returns:
+        frozen : [N-K] frozen indices
+        info   : [K] information indices
+        z      : [N] Bhattacharyya estimates/bounds
     """
 
-    if n < 2 or (n & (n - 1)) != 0 or not 0 < k < n:
-        raise ValueError("n must be a power of two and 0 < k < n.")
+    if n < 2 or (n & (n - 1)):
+        raise ValueError("n must be a power of two.")
+
+    if not 0 < k < n:
+        raise ValueError("Require 0 < k < n.")
+
     channel = channel.upper()
 
+    # --------------------------------------------------------
+    # Initial Bhattacharyya parameter
+    # --------------------------------------------------------
+
     if channel == "BSC":
-        if not 0 <= design_p <= 0.5:
-            raise ValueError("design_p out of range.")
-        z0 = 2.0 * np.sqrt(design_p * (1.0 - design_p))
+        if not 0.0 <= design_p <= 0.5:
+            raise ValueError("design_p must be in [0, 0.5].")
+
+        z0 = 2.0 * np.sqrt(
+            design_p * (1.0 - design_p)
+        )
 
     elif channel == "BEC":
-        if not 0 <= design_erasure <= 1:
-            raise ValueError("design_erasure out of range.")
+        if not 0.0 <= design_erasure <= 1.0:
+            raise ValueError(
+                "design_erasure must be in [0, 1]."
+            )
+
         z0 = float(design_erasure)
 
     elif channel == "AWGN":
-        # For equiprobable BPSK with symbol energy 1, Z = exp(-Es/N0).
-        z0 = np.exp(-(10.0 ** (design_snr_db / 10.0)))
+        # Equiprobable BPSK, unit symbol energy.
+        z0 = np.exp(
+            -(10.0 ** (design_snr_db / 10.0))
+        )
 
     else:
-        raise ValueError("channel must be BSC, AWGN, or BEC.")
+        raise ValueError(
+            "channel must be BSC, BEC, or AWGN."
+        )
 
-    z = np.asarray([z0], dtype=np.float64)
+    # --------------------------------------------------------
+    # Polarization recursion
+    # --------------------------------------------------------
+
+    z = np.array([z0], dtype=np.float64)
+
     while z.size < n:
-        z_next = np.empty(2 * z.size, dtype=np.float64)
-        z_next[0::2] = np.minimum(1.0, 2.0 * z - z * z)
-        z_next[1::2] = z * z
-        z = z_next
+        nxt = np.empty(2 * z.size, dtype=np.float64)
+
+        # Minus channel.
+        nxt[0::2] = np.minimum(
+            1.0,
+            2.0 * z - z * z,
+        )
+
+        # Plus channel.
+        nxt[1::2] = z * z
+
+        z = nxt
+
+    # --------------------------------------------------------
+    # Select most reliable channels
+    # --------------------------------------------------------
 
     order = np.argsort(z, kind="stable")
-    info = np.sort(order[:k].astype(np.int32))
-    frozen = np.sort(order[k:].astype(np.int32))
+
+    info = np.sort(
+        order[:k].astype(np.int32)
+    )
+
+    frozen = np.sort(
+        order[k:].astype(np.int32)
+    )
 
     return frozen, info, z
+
+
+# ============================================================
+# 5. Example
+# ============================================================
+
+if __name__ == "__main__":
+
+    N = 1024
+    K = 512
+
+    frozen, info, z = bhattacharyya_design(
+        N,
+        K,
+        channel="BSC",
+        design_p=0.15,
+    )
+
+    print(f"N={N}, K={K}")
+    print("Information positions:", info)
+    print("Frozen positions:", frozen)

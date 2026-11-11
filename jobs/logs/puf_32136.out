@@ -1,0 +1,21 @@
+Native AFF3CT engine: OK
+
+============================================================
+ECE HPC - POLAR SRAM-PUF MONTE CARLO
+============================================================
+Job ID:             32136
+Job name:           SCL_L4_off
+Decoder case:       SCL_L4
+Enrollment scheme:  code_offset
+Node:               ecenod301
+Start time:         Tue Nov 10 10:25:27 PM HKT 2026
+Partition:          cpu-share
+Account:            eewhmow
+Allocated CPUs:     16
+Visible CPUs:       1
+CPU affinity:       0-15
+Python:             /home/hnksm/.conda/envs/puf_aff3ct/bin/python
+Conda environment:  puf_aff3ct
+Results:            /home/hnksm/puf_polar_project/results/ece/job_32136_SCL_L4_code_offset
+============================================================
+

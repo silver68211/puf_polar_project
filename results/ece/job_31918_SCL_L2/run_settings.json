@@ -1,0 +1,48 @@
+{
+  "slurm_job_id": "31918",
+  "slurm_job_name": "puf-scl2",
+  "partition": "cpu-share",
+  "account": "eewhmow",
+  "hostname": "ecenod301",
+  "decoder_case": "SCL_L2",
+  "allocated_cpus": 32,
+  "simulation_threads": 32,
+  "configuration": {
+    "n_log2": 10,
+    "key_length": 128,
+    "construction": "5G",
+    "num_threads": 32,
+    "puf_one_probability": 0.5,
+    "all_zero_device": false,
+    "scramble_codeword": true,
+    "design_p": 0.15,
+    "p_values": [
+      0.15,
+      0.18,
+      0.2,
+      0.22,
+      0.24,
+      0.26,
+      0.28,
+      0.3
+    ],
+    "decoder": [
+      "SCL"
+    ],
+    "seed": 1558784953739581151,
+    "num_trials": 10,
+    "alpha": 0.3367,
+    "list_sizes": [
+      2
+    ],
+    "checker": "hash",
+    "hash_name": "sha256",
+    "hash_bits": 128,
+    "crc_degree": "CRC16",
+    "batch_size": 1000000,
+    "min_block_errors": 100,
+    "max_blocks": 1000000000,
+    "compare_code_offset": false,
+    "out_dir": "/home/hnksm/puf_polar_project/results/ece/job_31918_SCL_L2"
+  }
+}

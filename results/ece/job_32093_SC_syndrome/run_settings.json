@@ -1,0 +1,56 @@
+{
+  "slurm_job_id": "32093",
+  "slurm_job_name": "SC_SYN",
+  "partition": "cpu-share",
+  "account": "eewhmow",
+  "hostname": "ecenod302",
+  "started_utc": "2026-11-10T10:19:06.045933+00:00",
+  "decoder_case": "SC",
+  "enrollment_scheme_request": "syndrome",
+  "allocated_cpus": 16,
+  "available_cpus": 16,
+  "simulation_threads": 16,
+  "python_executable": "/home/hnksm/.conda/envs/puf_aff3ct/bin/python",
+  "configuration": {
+    "n_log2": 10,
+    "key_length": 128,
+    "construction": "BSC",
+    "num_threads": 16,
+    "puf_one_probability": 0.5,
+    "all_zero_device": false,
+    "scramble_codeword": true,
+    "enrollment_schemes": [
+      "syndrome"
+    ],
+    "design_p": 0.15,
+    "p_values": [
+      0.01,
+      0.03,
+      0.05,
+      0.07,
+      0.09,
+      0.11,
+      0.13
+    ],
+    "decoder": [
+      "SC"
+    ],
+    "num_trials": 10,
+    "alpha": 0.3367,
+    "list_sizes": [
+      2,
+      4,
+      8,
+      16
+    ],
+    "seed": 2026,
+    "checker": "hash",
+    "hash_name": "sha256",
+    "hash_bits": 128,
+    "crc_degree": "CRC16",
+    "batch_size": 10000,
+    "min_block_errors": 100,
+    "max_blocks": 10000000000,
+    "out_dir": "/home/hnksm/puf_polar_project/results/ece/job_32093_SC_syndrome"
+  }
+}

@@ -1,0 +1,37 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794302666.742751  582759 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+I0000 00:00:1794302666.743250  582759 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+I0000 00:00:1794302668.847896  582759 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX512F AVX512_VNNI AVX512_BF16 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+Traceback (most recent call last):
+  File "<stdin>", line 14, in <module>
+  File "/home/hnksm/puf_polar_project/sim_aff3ct.py", line 44, in <module>
+    from Enrolment import SRAMPUFEnrollment
+  File "/home/hnksm/puf_polar_project/Enrolment.py", line 31, in <module>
+    from utils import sample_puf_bits, polar_transform_bits
+  File "/home/hnksm/puf_polar_project/utils.py", line 15, in <module>
+    import tensorflow as tf
+  File "/home/hnksm/.conda/envs/puf_aff3ct/lib/python3.10/site-packages/tensorflow/__init__.py", line 49, in <module>
+    from tensorflow._api.v2 import __internal__
+  File "/home/hnksm/.conda/envs/puf_aff3ct/lib/python3.10/site-packages/tensorflow/_api/v2/__internal__/__init__.py", line 8, in <module>
+    from tensorflow._api.v2.__internal__ import autograph
+  File "/home/hnksm/.conda/envs/puf_aff3ct/lib/python3.10/site-packages/tensorflow/_api/v2/__internal__/autograph/__init__.py", line 8, in <module>
+    from tensorflow.python.autograph.core.ag_ctx import control_status_ctx # line: 34
+  File "/home/hnksm/.conda/envs/puf_aff3ct/lib/python3.10/site-packages/tensorflow/python/autograph/core/ag_ctx.py", line 21, in <module>
+    from tensorflow.python.autograph.utils import ag_logging
+  File "/home/hnksm/.conda/envs/puf_aff3ct/lib/python3.10/site-packages/tensorflow/python/autograph/utils/__init__.py", line 17, in <module>
+    from tensorflow.python.autograph.utils.context_managers import control_dependency_on_returns
+  File "/home/hnksm/.conda/envs/puf_aff3ct/lib/python3.10/site-packages/tensorflow/python/autograph/utils/context_managers.py", line 19, in <module>
+    from tensorflow.python.framework import ops
+  File "/home/hnksm/.conda/envs/puf_aff3ct/lib/python3.10/site-packages/tensorflow/python/framework/ops.py", line 50, in <module>
+    from tensorflow.python.eager import context
+  File "/home/hnksm/.conda/envs/puf_aff3ct/lib/python3.10/site-packages/tensorflow/python/eager/context.py", line 38, in <module>
+    from tensorflow.python.eager import execute
+  File "/home/hnksm/.conda/envs/puf_aff3ct/lib/python3.10/site-packages/tensorflow/python/eager/execute.py", line 21, in <module>
+    from tensorflow.python.framework import dtypes
+  File "/home/hnksm/.conda/envs/puf_aff3ct/lib/python3.10/site-packages/tensorflow/python/framework/dtypes.py", line 33, in <module>
+    from tensorflow.python.types import trace
+  File "/home/hnksm/.conda/envs/puf_aff3ct/lib/python3.10/site-packages/tensorflow/python/types/trace.py", line 31, in <module>
+    from typing_extensions import Protocol
+ModuleNotFoundError: No module named 'typing_extensions'
+srun: error: ecenod302: task 0: Exited with exit code 1

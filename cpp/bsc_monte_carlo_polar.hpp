@@ -498,14 +498,29 @@ public:
         // Validate PUF enrollment
         // ----------------------------------------
 
-        // C = X G
+        // Supports both enrollment schemes:
         //
-        // Z = embed(C_F) G
+        // 1. Syndrome construction:
+        //    Z = embed((X G_N)_F) G_N
+        //    S = (X G_N)_A
         //
-        // C' = (X XOR Z) G
+        // 2. Conventional code-offset construction:
+        //    S is independently generated.
+        //    C = encode(S), with zero frozen bits.
+        //    Z = X XOR C
         //
-        // The frozen positions of C' must be zero,
-        // and its information bits must equal S.
+        // For both constructions:
+        //
+        //    C = X XOR Z
+        //    U = C G_N
+        //
+        // The following conditions must hold:
+        //
+        //    U_F = 0
+        //    U_A = S
+        //
+        // Therefore, the decoder can operate on either
+        // enrollment scheme without modification.
 
         std::vector<uint8_t> transformed = x_;
 

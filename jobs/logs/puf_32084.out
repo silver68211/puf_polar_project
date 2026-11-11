@@ -1,0 +1,32 @@
+Native AFF3CT engine: OK
+
+============================================================
+ECE HPC - POLAR SRAM-PUF MONTE CARLO
+============================================================
+Job ID:             32084
+Job name:           5G_N1024_K128_SYN_SC
+Decoder case:       SC
+Enrollment scheme:  syndrome
+Node:               ecenod302
+Start time:         Tue Nov 10 05:20:49 PM HKT 2026
+Partition:          cpu-share
+Account:            eewhmow
+Allocated CPUs:     16
+Visible CPUs:       1
+CPU affinity:       0-15
+Python:             /home/hnksm/.conda/envs/puf_aff3ct/bin/python
+Conda environment:  puf_aff3ct
+Results:            /home/hnksm/puf_polar_project/results/ece/job_32084_SC_syndrome
+============================================================
+
+
+============================================================
+ECE HPC SIMULATION FINISHED
+============================================================
+Job ID:       32084
+Decoder:      SC
+Enrollment:   syndrome
+End time:     Tue Nov 10 05:20:50 PM HKT 2026
+Exit code:    1
+Results:      /home/hnksm/puf_polar_project/results/ece/job_32084_SC_syndrome
+============================================================

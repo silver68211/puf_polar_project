@@ -1,0 +1,12 @@
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794289662.095249 2138837 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+I0000 00:00:1794289662.095779 2138837 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1794289726.379667 2138837 port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+I0000 00:00:1794289726.381451 2138837 cudart_stub.cc:31] Could not find cuda drivers on your machine, GPU will not be used.
+Traceback (most recent call last):
+  File "<stdin>", line 162, in <module>
+  File "/home/hnksm/puf_polar_project/sim_aff3ct.py", line 410, in simulate
+    raise NotImplementedError(
+NotImplementedError: compare_code_offset is not supported by this native Monte Carlo engine.
+srun: error: ecenod304: task 0: Exited with exit code 1
