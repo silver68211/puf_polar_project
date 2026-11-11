@@ -72,11 +72,20 @@ python -c "from puf_aff3ct import PolarSC, PolarDSCF, PolarSCLPUF, BSCMonteCarlo
 
 ## 3. Test the installation
 
-From the project root, with `puf_aff3ct` activated:
+From the project root, with `puf_aff3ct` activated: 
+#Create a pytest.ini file in the project root
 
 ```bash
-export PYTHONNOUSERSITE=1
-python -m pytest -q test_code_offset.py test_code_offset_native.py test_code_offset_noisy.py
+cat > pytest.ini <<'EOF'
+[pytest]
+testpaths = tests
+pythonpath = .
+EOF
+```
+# run all tests simply
+
+```bash
+python -m pytest -v
 ```
 
 These tests cover enrollment identities, noiseless native reconstruction, and bounded noisy-channel integration. They are **not** substitutes for statistically precise BLER measurements.
