@@ -109,7 +109,7 @@ hash_bits = 128
 seed = 2026
 ```
 
-These are configuration field values, **not a standalone Python script**. Set `min_block_errors`, `max_blocks`, `num_threads`, and `out_dir` in the same configuration. For quick tests, use small block limits; production simulations require enough observed errors for reliable BLER estimates. Custom `OURS` construction expects `codes/frozen_bits_N{N}_K{K}_our.csv`.
+Set `min_block_errors`, `max_blocks`, `num_threads`, and `out_dir` in the same configuration. For quick tests, use small block limits;  Custom `OURS` construction expects `codes/frozen_bits_N{N}_K{K}_our_017.csv`.
 
 ## 5. Run simulations
 
