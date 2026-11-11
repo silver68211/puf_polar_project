@@ -18,18 +18,32 @@ Run the following commands in a terminal.
 
 **Get this repository and create the Python environment:**
 
-```bash
+```
+# Clone the repository
 git clone git@github.com:silver68211/puf_polar_project.git
 cd puf_polar_project
 
-conda create -n puf_aff3ct python=3.10 cmake pip -y
-conda activate puf_aff3ct
-export PYTHONNOUSERSITE=1
-python -m pip install --no-user numpy scipy pandas matplotlib pytest pybind11 tensorflow
-python -m pip check
-```
+# Create the Conda environment from the exported configuration
+conda env create -f environment.yml
 
-TensorFlow and Matplotlib are included because the current Python utilities may import them even when the native simulator is used.
+# Activate the environment
+conda activate puf_aff3ct
+
+# Prevent interference from user-level Python packages
+export PYTHONNOUSERSITE=1
+
+# Install/verify pip dependencies from the frozen requirements
+python -m pip install --no-user -r requirements.txt
+
+# Verify package dependencies
+python -m pip check
+
+# Verify Python and essential packages
+python -c "
+import numpy, scipy, pandas, matplotlib, pytest, pybind11, tensorflow
+print('Python environment: OK')
+print('TensorFlow version:', tensorflow.__version__)
+```
 
 **Build and install AFF3CT v4.7.1:**
 
