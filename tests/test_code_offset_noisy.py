@@ -3,9 +3,8 @@
 
 Run:
     python -m pytest -v test_code_offset_noisy.py
-    python test_code_offset_noisy.py
 
-These are bounded regression tests, not BLER performance estimates.
+These are bounded regression tests, not precise BLER estimates.
 """
 
 from __future__ import annotations
@@ -18,13 +17,20 @@ import pytest
 
 from config import SimConfig
 from Enrolment import SRAMPUFEnrollment
-from puf_aff3ct import PolarDSCF, PolarSC, PolarSCLPUF
+from puf_aff3ct import (
+    PolarDSCF,
+    PolarSC,
+    PolarSCLPUF,
+)
 from sim_aff3ct import simulate
-from utils import generate_5g_ranking, polar_transform_bits
+from utils import (
+    generate_5g_ranking,
+    polar_transform_bits,
+)
 
 
 # ============================================================
-# 1. End-to-end native Monte Carlo at p > 0
+# 1. Noisy native Monte Carlo
 # ============================================================
 
 @pytest.mark.parametrize(
@@ -36,9 +42,16 @@ from utils import generate_5g_ranking, polar_transform_bits
     ],
 )
 def test_noisy_native_monte_carlo(
-    checker_kind, q, scramble, p_values, tmp_path
+    checker_kind,
+    q,
+    scramble,
+    p_values,
+    tmp_path,
 ):
-    """Both schemes must run without errors and report valid statistics."""
+    """
+    Both enrollment schemes must run under noise and return
+    valid BLER and normalized-complexity statistics.
+    """
 
     cfg = replace(
         SimConfig(),
@@ -48,7 +61,10 @@ def test_noisy_native_monte_carlo(
         puf_one_probability=q,
         all_zero_device=False,
         scramble_codeword=scramble,
-        enrollment_schemes=("syndrome", "code_offset"),
+        enrollment_schemes=(
+            "syndrome",
+            "code_offset",
+        ),
         decoder=("SC", "DSCF", "SCL"),
         list_sizes=(2, 4),
         num_trials=10,
@@ -66,70 +82,153 @@ def test_noisy_native_monte_carlo(
     )
 
     rows = simulate(cfg)
-    schemes = ("syndrome", "code_offset")
-    decoders = ("SC", "DSCF", "SCL_L2", "SCL_L4")
 
-    # Two schemes x four decoder settings x selected p values.
-    assert len(rows) == len(schemes) * len(decoders) * len(p_values)
+    schemes = (
+        "syndrome",
+        "code_offset",
+    )
+
+    decoders = (
+        "SC",
+        "DSCF",
+        "SCL_L2",
+        "SCL_L4",
+    )
+
+    expected_count = (
+        len(schemes)
+        * len(decoders)
+        * len(p_values)
+    )
+
+    assert len(rows) == expected_count
+
+    # ========================================================
+    # Validate Monte Carlo outputs
+    # ========================================================
 
     for row in rows:
+
         assert row["scheme"] in schemes
         assert row["decoder"] in decoders
         assert row["p"] in p_values
-        assert np.isfinite(row["BLER"])
-        assert 0.0 <= row["BLER"] <= 1.0
 
-        complexity = row["normalized_complexity"]
+        bler = float(row["BLER"])
+
+        assert np.isfinite(bler)
+        assert 0.0 <= bler <= 1.0
+
+        complexity = float(
+            row["normalized_complexity"]
+        )
+
         assert np.isfinite(complexity)
-        if row["decoder"] == "SC":
-            assert complexity == 1.0
-        elif row["decoder"] == "DSCF":
-            assert 1.0 <= complexity <= 1.0 + cfg.num_trials
-        elif row["decoder"] == "SCL_L2":
-            assert complexity == 2.0
-        else:
-            assert complexity == 4.0
 
-    # Confirm each scheme/decoder has its own CSV with all p values.
-    csv_paths = sorted(tmp_path.glob("*.csv"))
-    assert len(csv_paths) == len(schemes) * len(decoders)
+        if row["decoder"] == "SC":
+
+            assert complexity == pytest.approx(1.0)
+
+        elif row["decoder"] == "DSCF":
+
+            assert (
+                1.0
+                <= complexity
+                <= 1.0 + cfg.num_trials
+            )
+
+        elif row["decoder"] == "SCL_L2":
+
+            assert complexity == pytest.approx(2.0)
+
+        elif row["decoder"] == "SCL_L4":
+
+            assert complexity == pytest.approx(4.0)
+
+    # ========================================================
+    # Validate CSV output
+    # ========================================================
+
+    csv_paths = sorted(
+        tmp_path.glob("*.csv")
+    )
+
+    assert len(csv_paths) == (
+        len(schemes) * len(decoders)
+    )
 
     for path in csv_paths:
-        with path.open(newline="", encoding="utf-8") as f:
+
+        with path.open(
+            newline="",
+            encoding="utf-8",
+        ) as f:
+
             reader = csv.DictReader(f)
+
             assert reader.fieldnames == [
-                "p", "BLER", "normalized_complexity"
+                "p",
+                "BLER",
+                "normalized_complexity",
             ]
+
             csv_rows = list(reader)
 
         assert len(csv_rows) == len(p_values)
-        assert tuple(float(r["p"]) for r in csv_rows) == p_values
-        for csv_row in csv_rows:
-            assert 0.0 <= float(csv_row["BLER"]) <= 1.0
-            assert float(csv_row["normalized_complexity"]) >= 1.0
 
-    # Do not assert equal BLER between independently generated keys:
-    # these are different codewords, with finite Monte Carlo samples.
+        assert tuple(
+            float(r["p"]) for r in csv_rows
+        ) == p_values
+
+        for csv_row in csv_rows:
+
+            assert (
+                0.0
+                <= float(csv_row["BLER"])
+                <= 1.0
+            )
+
+            assert (
+                float(csv_row["normalized_complexity"])
+                >= 1.0
+            )
+
+    # Do not require independently sampled syndrome and
+    # code-offset experiments to have identical measured BLER.
+    # Their keys and codewords may differ, and samples are finite.
 
 
 # ============================================================
-# 2. Exact paired decoding with the same key AND noise
+# 2. Paired schemes with identical noisy inputs
 # ============================================================
 
 @pytest.mark.parametrize("q", [0.5, 0.4])
 @pytest.mark.parametrize("scramble", [False, True])
-def test_paired_native_decoders_same_noisy_inputs(q, scramble):
-    """Paired schemes must give the same native decisions for identical LLRs.
+def test_paired_native_decoders_same_noisy_inputs(
+    q,
+    scramble,
+):
+    """
+    Paired syndrome/code-offset enrollment must produce the
+    same decoder decisions for identical input LLRs.
 
-    Here the code-offset scheme is intentionally enrolled using the
-    syndrome-derived key. This checks algebraic/decoder equivalence,
-    NOT the independent-key code-offset experiment.
+    The code-offset key is deliberately chosen to equal the
+    syndrome-derived key.
+
+    This is an algebraic consistency test, not an independent
+    code-offset experiment.
     """
 
     n, k = 256, 128
+
     frozen, info = generate_5g_ranking(k, n)
-    frozen = np.sort(np.asarray(frozen, dtype=np.int32))
-    info = np.sort(np.asarray(info, dtype=np.int32))
+
+    frozen = np.sort(
+        np.asarray(frozen, dtype=np.int32)
+    )
+
+    info = np.sort(
+        np.asarray(info, dtype=np.int32)
+    )
 
     enrollment = SRAMPUFEnrollment(
         n=n,
@@ -139,7 +238,14 @@ def test_paired_native_decoders_same_noisy_inputs(q, scramble):
     )
 
     rng = np.random.default_rng(314159)
-    x = (rng.random((1, n)) < q).astype(np.uint8)
+
+    x = (
+        rng.random((1, n)) < q
+    ).astype(np.uint8)
+
+    # ========================================================
+    # Enrollment
+    # ========================================================
 
     syndrome = enrollment.enroll(
         x=x,
@@ -162,21 +268,24 @@ def test_paired_native_decoders_same_noisy_inputs(q, scramble):
         paired.tag,
     )
 
-    # --------------------------------------------------------
-    # Optional random polar-codeword scrambling
-    # --------------------------------------------------------
+    # ========================================================
+    # Optional shared codeword scrambling
+    # ========================================================
 
-    mask = (
-        rng.integers(
+    if scramble:
+
+        mask = rng.integers(
             0, 2, size=k, dtype=np.uint8
         )
-        if scramble
-        else np.zeros(k, dtype=np.uint8)
-    )
+
+    else:
+
+        mask = np.zeros(
+            k, dtype=np.uint8
+        )
 
     u_mask = np.zeros(
-        (1, n),
-        dtype=np.uint8,
+        (1, n), dtype=np.uint8
     )
 
     u_mask[0, info] = mask
@@ -185,9 +294,9 @@ def test_paired_native_decoders_same_noisy_inputs(q, scramble):
         u_mask
     )[0]
 
-    # --------------------------------------------------------
-    # Generate the SAME BSC errors for both schemes
-    # --------------------------------------------------------
+    # ========================================================
+    # Generate noisy SRAM observations
+    # ========================================================
 
     p = 0.10
 
@@ -203,21 +312,26 @@ def test_paired_native_decoders_same_noisy_inputs(q, scramble):
         rng.random((8, n)) < p
     ).astype(np.uint8)
 
-    y = x[0][None, :] ^ errors
+    y = np.bitwise_xor(
+        x[0][None, :],
+        errors,
+    )
 
-    # --------------------------------------------------------
-    # Construct channel LLRs
-    # --------------------------------------------------------
+    # ========================================================
+    # Construct LLRs independently for both schemes
+    # ========================================================
 
     def shifted_llrs(offset):
+
         physical_llrs = (
-            (
-                1.0 - 2.0 * y.astype(np.float32)
-            ) * channel_magnitude
+            (1.0 - 2.0 * y.astype(np.float32))
+            * channel_magnitude
             + physical_prior
         )
 
-        shift = offset[0] ^ mask_codeword
+        shift = (
+            offset[0] ^ mask_codeword
+        )
 
         return np.ascontiguousarray(
             np.where(
@@ -236,14 +350,13 @@ def test_paired_native_decoders_same_noisy_inputs(q, scramble):
         paired.offset
     )
 
-    # Identical key and offset must give identical LLRs.
     np.testing.assert_array_equal(
         llrs_syndrome,
         llrs_paired,
     )
 
     # ========================================================
-    # 3. Paired SC decoding
+    # SC decoding
     # ========================================================
 
     sc_a = PolarSC(
@@ -272,30 +385,31 @@ def test_paired_native_decoders_same_noisy_inputs(q, scramble):
     )
 
     # ========================================================
-    # 4. Public verification callback for DSCF
+    # Public key-verification callback
     # ========================================================
 
     expected_tag = syndrome.tag[0]
 
     def public_verifier(candidate):
-        bits = np.asarray(
+
+        candidate_bits = np.asarray(
             candidate,
             dtype=np.uint8,
         ).reshape(1, -1)
 
-        candidate_tag = enrollment.checker.tag(
-            bits
+        computed_tag = enrollment.checker.tag(
+            candidate_bits
         )[0]
 
         return bool(
             np.array_equal(
-                candidate_tag,
+                computed_tag,
                 expected_tag,
             )
         )
 
     # ========================================================
-    # 5. Paired DSCF decoding
+    # DSCF decoding
     # ========================================================
 
     dscf_a = PolarDSCF(
@@ -313,7 +427,7 @@ def test_paired_native_decoders_same_noisy_inputs(q, scramble):
     )
 
     # ========================================================
-    # 6. Paired SCL decoding
+    # SCL decoding, L=4
     # ========================================================
 
     scl_a = PolarSCLPUF(
@@ -334,18 +448,18 @@ def test_paired_native_decoders_same_noisy_inputs(q, scramble):
         128,
     )
 
-    # --------------------------------------------------------
-    # Compare decoded keys for each noisy observation
-    # --------------------------------------------------------
+    # ========================================================
+    # Compare decoder decisions
+    # ========================================================
 
     for row_a, row_b in zip(
         llrs_syndrome,
         llrs_paired,
     ):
 
-        # ----------------------------------------------------
+        # --------------------
         # DSCF
-        # ----------------------------------------------------
+        # --------------------
 
         result_a = dscf_a.decode(
             row_a,
@@ -359,7 +473,10 @@ def test_paired_native_decoders_same_noisy_inputs(q, scramble):
             mask.tolist(),
         )
 
-        assert result_a["key"] == result_b["key"]
+        assert (
+            result_a["key"]
+            == result_b["key"]
+        )
 
         assert (
             result_a["verified"]
@@ -371,9 +488,9 @@ def test_paired_native_decoders_same_noisy_inputs(q, scramble):
             == result_b["attempts"]
         )
 
-        # ----------------------------------------------------
+        # --------------------
         # SCL
-        # ----------------------------------------------------
+        # --------------------
 
         result_a = scl_a.decode(
             row_a,
@@ -385,7 +502,10 @@ def test_paired_native_decoders_same_noisy_inputs(q, scramble):
             mask.tolist(),
         )
 
-        assert result_a["key"] == result_b["key"]
+        assert (
+            result_a["key"]
+            == result_b["key"]
+        )
 
         assert (
             result_a["verified"]
@@ -398,14 +518,7 @@ def test_paired_native_decoders_same_noisy_inputs(q, scramble):
         )
 
 
-# ============================================================
-# 7. Run tests
-# ============================================================
-
 if __name__ == "__main__":
     raise SystemExit(
-        pytest.main([
-            "-v",
-            __file__,
-        ])
+        pytest.main(["-v", __file__])
     )

@@ -52,7 +52,7 @@ class SimConfig:
     # Custom "ours" construction can be enabled after
     
 
-    construction: str = "BSC"
+    construction: str = "ours"
 
     # Number of parallel native C++ workers.
     # For HPC runs, Slurm can override this value.
@@ -128,8 +128,6 @@ class SimConfig:
     # The polar construction remains fixed across all p.
 
     p_values: tuple[float, ...] = ( 
-        0.16,
-        0.18,
         0.20, 
         0.22, 
         0.24, 

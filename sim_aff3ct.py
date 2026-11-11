@@ -228,7 +228,7 @@ def construct_polar_code(cfg, n, k):
     elif construction == "OURS":
 
         default_path = (
-            f"codes/frozen_bits_N{n}_K{k}_our.csv"
+            f"codes/frozen_bits_N{n}_K{k}_our_017.csv"
         )
 
         frozen_path = Path(

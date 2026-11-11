@@ -1,0 +1,21 @@
+Native AFF3CT engine: OK
+
+============================================================
+ECE HPC - POLAR SRAM-PUF MONTE CARLO
+============================================================
+Job ID:             32232
+Job name:           SC_syn
+Decoder case:       SC
+Enrollment scheme:  syndrome
+Node:               ecenod301
+Start time:         Wed Nov 11 04:25:04 PM HKT 2026
+Partition:          cpu-share
+Account:            eewhmow
+Allocated CPUs:     32
+Visible CPUs:       1
+CPU affinity:       0-31
+Python:             /home/hnksm/.conda/envs/puf_aff3ct/bin/python
+Conda environment:  puf_aff3ct
+Results:            /home/hnksm/puf_polar_project/results/ece/job_32232_SC_syndrome
+============================================================
+

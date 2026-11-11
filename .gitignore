@@ -28,7 +28,7 @@ htmlcov/
 # ------------------------------------------------------------
 # 2. Python environments and packaging
 # ------------------------------------------------------------
-
+.vscode
 .venv/
 venv/
 env/
@@ -76,7 +76,6 @@ CMakeUserPresets.json
 
 # results/
 outputs/
-tests/
 simulation_outputs/
 
 # Simulation logs
@@ -144,6 +143,5 @@ credentials/
 #   cpp/*.hpp
 #   cpp/CMakeLists.txt
 #   test_*.py
-#   requirements.txt
 #   README.md
 # ============================================================
