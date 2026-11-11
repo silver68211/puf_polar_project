@@ -138,9 +138,7 @@ Let `X` be the enrolled SRAM response, `Y = X ⊕ E` a noisy read, and `G_N` the
 | Syndrome / transform | `S = (X G_N)[info]` | `W = (X G_N)[frozen]` | `N − K` bits |
 | Code offset | Independently sampled `S`; `C = encode(S)` | `Z = X ⊕ C` | `N` bits |
 
-For syndrome enrollment, form the full offset `Z = encode(0_info, W_frozen)`. Both methods then decode `Y ⊕ Z` using a **zero-frozen** polar decoder. The hash/CRC verification tag is stored separately and is **not** counted among the `K` secret bits. The native DSCF and SCL decoders use that public tag for candidate selection; the true secret is used only to score reconstruction failures.
-
-**Limitations:** For biased PUFs (`P(X=1) ≠ 0.5`), the current prior-adjusted LLR is a baseline, not a proof of optimal helper-conditioned decoding or key secrecy. Public helper data **and** key-confirmation tags can leak information. The native CRC checker must not be assumed bit-for-bit identical to the standalone polynomial CRC layer without verification. `normalized_complexity` is an SC-equivalent model (nominally `L` for SCL), not measured execution time. Zero observed failures does not imply zero failure probability.
+For syndrome enrollment, form the full offset `Z = encode(0_info, W_frozen)`. Both methods then decode `Y ⊕ Z` using a **zero-frozen** polar decoder. The hash/CRC verification tag is stored separately and is **not** counted among the `K` secret bits. The native DSCF and SCL decoders use that public tag for candidate selection; 
 
 
 ## References
