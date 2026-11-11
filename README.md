@@ -29,20 +29,11 @@ conda env create -f environment.yml
 # Activate the environment
 conda activate puf_aff3ct
 
-# Prevent interference from user-level Python packages
-export PYTHONNOUSERSITE=1
-
 # Install/verify pip dependencies from the frozen requirements
 python -m pip install --no-user -r requirements.txt
 
 # Verify package dependencies
 python -m pip check
-
-# Verify Python and essential packages
-python -c "
-import numpy, scipy, pandas, matplotlib, pytest, pybind11, tensorflow
-print('Python environment: OK')
-print('TensorFlow version:', tensorflow.__version__)
 ```
 
 **Build and install AFF3CT v4.7.1:**
